@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluador de Riesgos — Grupo CFC</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080C14;
+  --surface:#0F1623;
+  --surface2:#161E2E;
+  --border:rgba(99,179,237,0.12);
+  --border-hover:rgba(99,179,237,0.3);
+  --text-primary:#F0F6FF;
+  --text-secondary:#8BA3C7;
+  --text-muted:#4A6080;
+  --accent:#3B82F6;
+  --accent-light:rgba(59,130,246,0.08);
+  --accent-glow:rgba(59,130,246,0.15);
+  --teal:#00D4AA;
+  --teal-light:rgba(0,212,170,0.08);
+  --teal-glow:rgba(0,212,170,0.2);
+  --violet:#8B5CF6;
+  --violet-light:rgba(139,92,246,0.08);
+  --green:#10B981;
+  --green-light:rgba(16,185,129,0.1);
+  --green-glow:rgba(16,185,129,0.25);
+  --yellow:#F59E0B;
+  --yellow-light:rgba(245,158,11,0.1);
+  --red:#EF4444;
+  --red-light:rgba(239,68,68,0.1);
+  --red-glow:rgba(239,68,68,0.25);
+  --radius:14px;
+  --radius-sm:10px;
+  --shadow:0 0 0 1px rgba(99,179,237,0.08),0 4px 24px rgba(0,0,0,0.4);
+  --shadow-glow:0 0 20px rgba(59,130,246,0.15);
+}
+
+/* ANIMATIONS */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glowPulse{0%,100%{opacity:.85}50%{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+html{font-size:16px}
+body{
+  font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--bg);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 15% 0%, rgba(15,30,61,0.8) 0%, transparent 60%),
+    radial-gradient(rgba(59,130,246,0.055) 1px, transparent 1px);
+  background-size:100% 100%, 32px 32px;
+  color:var(--text-primary);
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:2rem 1rem;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+.shell{width:100%;max-width:720px}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-hover)}
+
+/* HEADER */
+.app-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.header-left{display:flex;align-items:center;gap:12px}
+.logo-mark{
+  width:42px;height:42px;
+  background:linear-gradient(135deg,var(--accent),var(--violet));
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  box-shadow:0 0 16px rgba(59,130,246,0.3);
+}
+.brand-name{font-size:13px;font-weight:700;color:var(--teal);letter-spacing:.02em}
+.brand-sub{font-size:12px;color:var(--text-muted)}
+.header-nav{display:flex;gap:6px}
+.nav-btn{
+  height:34px;padding:0 14px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:transparent;
+  font-size:12px;font-weight:500;font-family:inherit;
+  color:var(--text-secondary);
+  cursor:pointer;display:flex;align-items:center;gap:5px;
+  transition:all .15s;
+}
+.nav-btn:hover{background:var(--accent-light);color:var(--text-primary);border-color:var(--border-hover)}
+.nav-btn.active{background:linear-gradient(135deg,var(--accent),var(--violet));color:white;border-color:transparent;box-shadow:0 0 12px rgba(59,130,246,0.25)}
+.badge-count{background:var(--red);color:white;font-size:10px;font-weight:700;padding:1px 5px;border-radius:20px;min-width:16px;text-align:center}
+
+/* SUPABASE STATUS BAR */
+.sb-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--radius-sm);margin-bottom:1rem;font-size:12px;border:1px solid var(--border);background:var(--surface)}
+.sb-bar.connected{border-color:rgba(0,212,170,0.3);background:rgba(0,212,170,0.04)}
+.sb-bar.error{border-color:rgba(239,68,68,0.3);background:var(--red-light)}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--text-muted)}
+.sb-dot.on{background:var(--teal);box-shadow:0 0 6px var(--teal-glow)}
+.sb-dot.err{background:var(--red)}
+.sb-dot.sync{background:var(--yellow);animation:pulse .8s infinite}
+.sb-text{flex:1;color:var(--text-secondary)}
+.sb-text strong{color:var(--text-primary)}
+
+/* CARD */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:2rem;
+  position:relative;
+  backdrop-filter:blur(20px);
+}
+.card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,var(--teal),var(--accent),var(--violet),transparent);
+  border-radius:var(--radius) var(--radius) 0 0;
+  opacity:.6;
+}
+.screen{display:none}
+.screen.active{display:block;animation:fadeUp .2s ease}
+
+/* SCREEN 1 */
+.screen-title{font-size:20px;font-weight:700;margin-bottom:4px;color:var(--text-primary)}
+.screen-desc{font-size:14px;color:var(--text-secondary);margin-bottom:1.75rem;line-height:1.6}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.form-grid .full{grid-column:1/-1}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase}
+.field input,.field select{
+  width:100%;height:44px;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  padding:0 14px;
+  font-size:14px;font-family:inherit;
+  color:var(--text-primary);
+  background:var(--surface2);
+  outline:none;
+  transition:border-color .15s,box-shadow .15s;
+  appearance:none;-webkit-appearance:none;
+}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%234A6080' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-color:var(--surface2);
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer;
+}
+.field select option{background:var(--surface2);color:var(--text-primary)}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:var(--shadow-glow)}
+.field input::placeholder{color:var(--text-muted)}
+.field textarea{
+  width:100%;min-height:72px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:10px 14px;font-size:14px;font-family:inherit;
+  color:var(--text-primary);background:var(--surface2);
+  outline:none;resize:vertical;line-height:1.5;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field textarea::placeholder{color:var(--text-muted)}
+.field textarea:focus{border-color:var(--accent);box-shadow:var(--shadow-glow)}
+.btn-primary{
+  width:100%;height:48px;margin-top:1.5rem;
+  background:linear-gradient(135deg,var(--accent),var(--violet));
+  color:#fff;border:none;border-radius:var(--radius-sm);
+  font-size:15px;font-weight:600;font-family:inherit;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:filter .15s,transform .1s;
+  box-shadow:0 0 16px rgba(59,130,246,0.2);
+}
+.btn-primary:hover{filter:brightness(1.12)}
+.btn-primary:active{transform:scale(.99)}
+
+/* SCREEN 2 */
+.progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.progress-label{font-size:12px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.progress-fraction{font-family:'Courier New',monospace;font-size:13px;color:var(--teal);font-weight:600}
+.progress-bar-wrap{height:3px;background:var(--border);border-radius:99px;margin-bottom:2rem;overflow:hidden}
+.progress-bar-fill{
+  height:100%;
+  background:linear-gradient(90deg,var(--teal),var(--accent));
+  border-radius:99px;
+  transition:width .3s ease;
+  position:relative;overflow:hidden;
+}
+.progress-bar-fill::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+}
+.q-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem}
+.q-badge.trigger{color:var(--yellow)}
+.trigger-dot{display:inline-block;width:6px;height:6px;background:var(--yellow);border-radius:50%;box-shadow:0 0 6px rgba(245,158,11,0.5)}
+.q-text{font-size:22px;font-weight:500;line-height:1.4;margin-bottom:1rem;color:var(--text-primary)}
+.q-example{
+  font-size:13px;color:var(--text-secondary);line-height:1.6;
+  background:var(--surface2);
+  border-radius:var(--radius-sm);
+  padding:10px 14px;margin-bottom:2rem;
+  border-left:3px solid var(--teal);
+}
+.q-example strong{font-weight:600;color:var(--teal)}
+.answer-group{display:grid;gap:10px;margin-bottom:2rem}
+.ans-btn{
+  width:100%;height:56px;
+  border:1.5px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:var(--surface2);
+  font-size:15px;font-weight:500;font-family:inherit;
+  color:var(--text-secondary);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:all .15s;
+}
+.ans-btn:hover{border-color:var(--accent);color:var(--text-primary);background:var(--accent-light);box-shadow:var(--shadow-glow)}
+.ans-btn.selected-si{border-color:var(--green);color:var(--green);background:var(--green-light);box-shadow:0 0 12px var(--green-glow)}
+.ans-btn.selected-no{border-color:var(--border);color:var(--text-secondary);background:var(--surface)}
+.ans-btn.selected-ns{border-color:var(--yellow);color:var(--yellow);background:var(--yellow-light)}
+.nav-row{display:flex;align-items:center;gap:10px}
+.btn-back{
+  height:44px;padding:0 20px;
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:transparent;font-size:14px;font-family:inherit;
+  color:var(--text-secondary);cursor:pointer;
+  transition:all .15s;flex-shrink:0;display:flex;align-items:center;gap:6px;
+}
+.btn-back:hover{background:var(--surface2);color:var(--text-primary);border-color:var(--border-hover)}
+.btn-next{
+  flex:1;height:44px;
+  background:linear-gradient(135deg,var(--accent),var(--violet));
+  color:#fff;border:none;border-radius:var(--radius-sm);
+  font-size:14px;font-weight:600;font-family:inherit;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:filter .15s;
+  box-shadow:0 0 12px rgba(59,130,246,0.2);
+}
+.btn-next:hover{filter:brightness(1.1)}
+.btn-next:disabled{opacity:.3;cursor:not-allowed;filter:none}
+
+/* SCREEN 3 - RESULT */
+.semaforo-wrap{display:flex;flex-direction:column;align-items:center;padding:2rem 0 1.5rem}
+.semaforo{
+  width:80px;height:80px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin-bottom:1rem;
+  animation:glowPulse 2.5s ease-in-out infinite;
+}
+.sem-green{background:var(--green);box-shadow:0 0 28px var(--green-glow),0 0 60px rgba(16,185,129,0.12)}
+.sem-yellow{background:var(--yellow);box-shadow:0 0 28px rgba(245,158,11,0.4),0 0 60px rgba(245,158,11,0.12)}
+.sem-red{background:var(--red);box-shadow:0 0 28px var(--red-glow),0 0 60px rgba(239,68,68,0.12)}
+.result-title{font-size:24px;font-weight:700;text-align:center;margin-bottom:6px}
+.result-subtitle{font-size:14px;color:var(--text-secondary);text-align:center;line-height:1.6;max-width:440px}
+.result-section{margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.5rem}
+.section-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin-bottom:1rem}
+.summary-grid{display:grid;gap:6px}
+.summary-row{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;line-height:1.45}
+.summary-q{color:var(--text-secondary);flex:1}
+.summary-badge{flex-shrink:0;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;letter-spacing:.02em}
+.badge-si{background:var(--green-light);color:var(--green);box-shadow:0 0 6px rgba(16,185,129,0.1)}
+.badge-no{background:var(--surface2);color:var(--text-muted)}
+.badge-ns{background:var(--yellow-light);color:var(--yellow)}
+.doc-list{display:grid;gap:8px}
+.doc-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--red-light);border:1px solid rgba(239,68,68,0.25);border-radius:var(--radius-sm)}
+.doc-icon{width:20px;height:20px;background:var(--red);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.doc-text{font-size:13px;line-height:1.5}
+.doc-name{font-weight:600;color:var(--text-primary)}
+.doc-cond{font-size:12px;color:var(--text-secondary);margin-top:1px}
+.checklist-list{display:grid;gap:8px}
+.check-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--yellow-light);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-sm);font-size:13px;line-height:1.5;color:var(--text-primary)}
+.check-num{width:20px;height:20px;background:var(--yellow);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;margin-top:1px}
+.trigger-list{display:flex;flex-wrap:wrap;gap:6px}
+.trigger-chip{font-size:12px;font-weight:500;padding:4px 10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:var(--yellow);border-radius:20px;display:flex;align-items:center;gap:5px}
+.action-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:2rem}
+.btn-outline{height:44px;border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;font-size:13px;font-family:inherit;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s}
+.btn-outline:hover{background:var(--surface2);color:var(--text-primary);border-color:var(--border-hover)}
+.btn-solid{height:44px;border:none;border-radius:var(--radius-sm);background:linear-gradient(135deg,var(--accent),var(--violet));font-size:13px;font-weight:600;font-family:inherit;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:filter .15s}
+.btn-solid:hover{filter:brightness(1.1)}
+.btn-email{height:44px;border:none;border-radius:var(--radius-sm);background:var(--green);font-size:13px;font-weight:600;font-family:inherit;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:filter .15s;box-shadow:0 0 12px var(--green-glow)}
+.btn-email:hover{filter:brightness(1.1)}
+.meta-pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;margin-right:6px;margin-bottom:6px}
+.meta-label{font-weight:500;color:var(--text-secondary)}
+.err-msg{font-size:13px;color:var(--red);background:var(--red-light);padding:10px 14px;border-radius:var(--radius-sm);border:1px solid rgba(239,68,68,0.2)}
+
+/* SCREEN 4 - HISTORIAL */
+.hist-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.hist-toolbar h2{font-size:18px;font-weight:700;color:var(--teal)}
+.hist-actions{display:flex;gap:8px}
+.hist-filter{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
+.filt-btn{height:30px;padding:0 12px;border:1px solid var(--border);border-radius:20px;background:transparent;font-size:12px;font-weight:500;font-family:inherit;color:var(--text-secondary);cursor:pointer;transition:all .15s}
+.filt-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filt-btn.on{background:linear-gradient(135deg,var(--accent),var(--violet));color:white;border-color:transparent}
+.hist-empty{text-align:center;padding:3rem 1rem;color:var(--text-muted);font-size:14px}
+.hist-item{
+  border:1px solid var(--border);
+  border-left:3px solid transparent;
+  border-radius:var(--radius-sm);
+  padding:1rem 1.25rem;margin-bottom:10px;
+  display:flex;align-items:center;gap:14px;
+  cursor:pointer;
+  transition:all .15s;
+  background:var(--surface2);
+  transform:translateY(0);
+}
+.hist-item:hover{border-color:var(--border-hover);border-left-color:var(--accent);background:var(--accent-light);transform:translateY(-1px);box-shadow:var(--shadow-glow)}
+.hist-sem{width:36px;height:36px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.hs-g{background:var(--green);box-shadow:0 0 10px var(--green-glow)}
+.hs-y{background:var(--yellow);box-shadow:0 0 10px rgba(245,158,11,0.3)}
+.hs-r{background:var(--red);box-shadow:0 0 10px var(--red-glow)}
+.hist-info{flex:1;min-width:0}
+.hist-name{font-size:14px;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.hist-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;flex-shrink:0}
+.hb-none{background:var(--green-light);color:var(--green)}
+.hb-basic{background:var(--yellow-light);color:var(--yellow)}
+.hb-formal{background:var(--red-light);color:var(--red)}
+.hist-del{width:30px;height:30px;border:none;background:transparent;cursor:pointer;color:var(--text-muted);font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);flex-shrink:0}
+.hist-del:hover{background:var(--red-light);color:var(--red)}
+
+/* SCREEN 5 - ESTADÍSTICAS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;text-align:center}
+.stat-num{font-size:28px;font-weight:700;color:var(--accent)}
+.stat-lbl{font-size:12px;color:var(--text-secondary);margin-top:2px}
+.stat-sub{font-size:11px;color:var(--text-muted);margin-top:1px}
+.chart-wrap{margin-bottom:1.5rem}
+.chart-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:.875rem}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bar-label{font-size:12px;color:var(--text-secondary);min-width:110px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:20px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:4px;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:white;transition:width .4s ease;min-width:24px}
+.bar-val{font-size:12px;color:var(--text-secondary);min-width:32px;text-align:right;flex-shrink:0}
+.trigger-stats{display:grid;gap:6px}
+.ts-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px}
+.ts-name{color:var(--text-secondary)}
+.ts-count{font-weight:700;color:var(--text-primary)}
+.ts-pct{font-size:11px;color:var(--text-muted);margin-left:6px}
+.export-note{font-size:12px;color:var(--text-secondary);line-height:1.6;background:var(--accent-light);border-radius:var(--radius-sm);padding:12px 14px;margin-top:1.25rem;border-left:3px solid var(--accent)}
+
+/* SUPABASE CONFIG PANEL */
+.sb-panel{border:1px solid var(--border);border-radius:var(--radius-sm);padding:1.25rem;margin-top:1.25rem;background:var(--surface2)}
+.sb-panel.sb-ok{border-color:rgba(0,212,170,0.3);background:rgba(0,212,170,0.04)}
+.sb-panel-title{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:.75rem;display:flex;align-items:center;gap:8px}
+.sb-panel-status{display:flex;align-items:center;gap:6px;font-size:12px;margin-bottom:1rem}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-off{background:var(--text-muted)}.dot-on{background:var(--green);box-shadow:0 0 6px var(--green-glow)}.dot-err{background:var(--red)}
+.sb-input-row{display:flex;gap:8px;align-items:flex-end}
+.sb-input-row input{flex:1;height:38px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:0 12px;font-size:12px;font-family:inherit;outline:none;background:var(--bg);color:var(--text-primary)}
+.sb-input-row input:focus{border-color:var(--accent);box-shadow:var(--shadow-glow)}
+.sb-btn{height:38px;padding:0 14px;border:none;border-radius:var(--radius-sm);background:var(--accent);color:white;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap}
+.sb-btn:hover{filter:brightness(1.1)}
+.sb-hint{font-size:11px;color:var(--text-muted);margin-top:8px;line-height:1.6}
+.sb-stats-row{display:flex;gap:12px;margin-top:.75rem;flex-wrap:wrap}
+.sb-stat{font-size:12px;color:var(--text-secondary);background:var(--bg);padding:4px 10px;border-radius:20px;border:1px solid var(--border)}
+.sb-stat strong{color:var(--teal)}
+
+/* DETAIL MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:100;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:600px;width:100%;max-height:90vh;overflow-y:auto;padding:2rem;position:relative;box-shadow:0 16px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(99,179,237,0.1)}
+.modal-close{position:absolute;top:1rem;right:1rem;width:32px;height:32px;border:1px solid var(--border);background:var(--surface2);border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all .15s}
+.modal-close:hover{background:var(--surface);border-color:var(--border-hover);color:var(--text-primary)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:1.25rem;padding-right:2rem;color:var(--text-primary)}
+.modal-actions{display:flex;gap:8px;margin-top:1.5rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface);border:1px solid var(--border);color:var(--text-primary);padding:10px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;z-index:200;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none;max-width:320px;box-shadow:var(--shadow)}
+.toast.show{opacity:1;transform:translateY(0)}
+.queue-info{font-size:12px;color:var(--yellow);background:var(--yellow-light);border:1px solid rgba(245,158,11,0.25);border-radius:var(--radius-sm);padding:8px 12px;margin-top:10px;display:none;align-items:center;gap:6px;line-height:1.5}
+.queue-badge{background:var(--yellow);color:var(--bg);font-size:10px;font-weight:700;padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;display:none;margin-left:4px}
+
+@media print{
+  body{background:white;padding:0}
+  .shell{max-width:100%}.app-header,.nav-btn{display:none!important}
+  .card{box-shadow:none;border:none}
+  .screen{display:none!important}
+  #screen3{display:block!important}
+  .action-row{display:none!important}
+  .modal-overlay{display:none!important}
+  .sb-bar{display:none!important}
+}
+@media(max-width:560px){
+  .form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:1}
+  .q-text{font-size:18px}.action-row{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .header-nav .nav-btn span{display:none}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SUPABASE STATUS BAR -->
+  <div class="sb-bar" id="sb-bar">
+    <div class="sb-dot" id="sb-dot"></div>
+    <span class="sb-text" id="sb-text">Conectando con Supabase...</span>
+  </div>
+
+  <div class="app-header">
+    <div class="header-left">
+      <div class="logo-mark">
+        <span style="color:white;font-size:13px;font-weight:700;letter-spacing:0.04em;font-family:system-ui,sans-serif">CFC</span>
+      </div>
+      <div>
+        <div class="brand-name">Grupo CFC</div>
+        <div class="brand-sub">Risk by Design — Evaluador v7</div>
+      </div>
+    </div>
+    <div class="header-nav">
+      <button class="nav-btn active" id="nav-nueva" onclick="goScreen('screen1')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M1 6.5h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <span>Nueva</span>
+      </button>
+      <button class="nav-btn" id="nav-hist" onclick="goScreen('screen4')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="1" width="11" height="11" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M4 4h5M4 6.5h5M4 9h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <span>Historial</span>
+        <span class="badge-count" id="hist-count" style="display:none">0</span>
+        <span class="queue-badge" id="queue-badge"></span>
+      </button>
+      <button class="nav-btn" id="nav-stats" onclick="goScreen('screen5')">
+        <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 10V7M5 10V4M8 10V6M11 10V2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Estadísticas</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <!-- PANTALLA 1: DATOS -->
+    <div class="screen active" id="screen1">
+      <p class="screen-title">Nueva evaluación</p>
+      <p class="screen-desc">Completa los datos del proyecto antes de iniciar el cuestionario de riesgos.</p>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Nombre del proyecto o iniciativa</label>
+          <input type="text" id="f-proyecto" placeholder="Ej. Automatización de conciliaciones bancarias"/>
+        </div>
+        <div class="field">
+          <label>Empresa</label>
+          <select id="f-empresa">
+            <option value="">Seleccionar empresa</option>
+            <option>Grupo CFC</option>
+            <option>Affinity</option>
+            <option>AFP Crecer RD</option>
+            <option>AFP Crecer El Salvador</option>
+            <option>Seguros Crecer</option>
+            <option>CrecerLAB</option>
+            <option>Auxilia</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Responsable del proyecto</label>
+          <input type="text" id="f-responsable" placeholder="Nombre completo"/>
+        </div>
+        <div class="field">
+          <label>Correo del responsable</label>
+          <input type="email" id="f-correo-resp" placeholder="responsable@grupocfc.com"/>
+        </div>
+        <div class="field">
+          <label>Correo — Encargado de Riesgos</label>
+          <input type="email" id="f-correo-riesgos" placeholder="riesgos@grupocfc.com"/>
+        </div>
+        <div class="field">
+          <label>Fecha</label>
+          <input type="date" id="f-fecha"/>
+        </div>
+        <div class="field full">
+          <label>Descripción del proyecto <span style="font-weight:400;color:var(--text-muted)">(recomendado para análisis IA)</span></label>
+          <textarea id="f-descripcion" placeholder="Describe brevemente el proyecto: qué hace, qué sistemas involucra, qué datos maneja, quiénes son los usuarios o afectados..." style="width:100%;min-height:88px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:inherit;color:var(--text-primary);background:var(--bg);outline:none;resize:vertical;line-height:1.5;transition:border-color .15s,box-shadow .15s" onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(27,58,92,.1)'" onblur="this.style.borderColor='';this.style.boxShadow=''"></textarea>
+        </div>
+        <div class="field full">
+          <label>Comentarios adicionales <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
+          <textarea id="f-comentarios" placeholder="Contexto adicional, notas relevantes, aclaraciones sobre el proyecto..." style="width:100%;min-height:72px;border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-family:inherit;color:var(--text-primary);background:var(--bg);outline:none;resize:vertical;line-height:1.5;transition:border-color .15s,box-shadow .15s" onfocus="this.style.borderColor='var(--accent)';this.style.boxShadow='0 0 0 3px rgba(27,58,92,.1)'" onblur="this.style.borderColor='';this.style.boxShadow=''"></textarea>
+        </div>
+        <div class="field full" id="error-s1" style="display:none">
+          <p class="err-msg">Por favor completa todos los campos antes de continuar.</p>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="startQuiz()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+        Iniciar evaluación
+      </button>
+    </div>
+
+    <!-- PANTALLA 2: CUESTIONARIO -->
+    <div class="screen" id="screen2">
+      <div class="progress-header">
+        <span class="progress-label">Evaluación en curso</span>
+        <span class="progress-fraction" id="prog-fraction">1 / 8</span>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-bar" style="width:12.5%"></div></div>
+      <div id="q-badge-wrap"></div>
+      <p class="q-text" id="q-text"></p>
+      <div class="q-example" id="q-example"></div>
+      <div class="answer-group" id="answer-group"></div>
+      <div class="nav-row">
+        <button class="btn-back" id="btn-back" onclick="prevQ()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Anterior
+        </button>
+        <button class="btn-next" id="btn-next" onclick="nextQ()" disabled>
+          <span id="next-label">Siguiente</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 2l5 5-5 5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- PANTALLA 3: RESULTADO -->
+    <div class="screen" id="screen3">
+      <div id="result-meta" style="margin-bottom:1rem;display:flex;flex-wrap:wrap"></div>
+      <!-- INDICADOR SYNC PERSISTENTE -->
+      <div id="sync-strip" style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:var(--radius-sm);margin-bottom:1.25rem;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--surface2)">
+        <div id="sync-strip-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-muted);flex-shrink:0"></div>
+        <span id="sync-strip-text" style="flex:1;color:var(--text-secondary)">Guardando en Supabase...</span>
+        <button id="sync-strip-retry" onclick="retrySyncLast()" style="display:none;background:none;border:none;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Reintentar</button>
+      </div>
+      <div class="semaforo-wrap">
+        <div class="semaforo" id="sem-circle">
+          <svg id="sem-icon" width="36" height="36" viewBox="0 0 36 36" fill="none"></svg>
+        </div>
+        <p class="result-title" id="result-title"></p>
+        <p class="result-subtitle" id="result-subtitle"></p>
+      </div>
+      <div id="trigger-section" class="result-section" style="display:none">
+        <p class="section-label">Disparadores activados</p>
+        <div class="trigger-list" id="trigger-list"></div>
+      </div>
+      <div id="docs-section" class="result-section" style="display:none">
+        <p class="section-label">Documentación requerida — Risk by Design</p>
+        <div class="doc-list" id="doc-list"></div>
+      </div>
+      <div id="checklist-section" class="result-section" style="display:none">
+        <p class="section-label">Pasos de revisión básica</p>
+        <div class="checklist-list" id="checklist-list"></div>
+      </div>
+      <div class="result-section">
+        <p class="section-label">Resumen de respuestas</p>
+        <div class="summary-grid" id="summary-grid"></div>
+      </div>
+      <div class="action-row">
+        <button class="btn-email" onclick="sendEmail()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="2" stroke="white" stroke-width="1.5"/><path d="M1 5l7 5 7-5" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Enviar correo
+        </button>
+        <button class="btn-outline" onclick="downloadHTML()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M4 10v2h8v-2M8 2v8M5 7l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Descargar
+        </button>
+        <button class="btn-solid" onclick="resetAll()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 1 1 1.5 4M2 12V8h4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Nueva
+        </button>
+      </div>
+
+      <!-- PANEL ANÁLISIS IA -->
+      <div id="ai-panel" style="display:none;margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1.5rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#1B3A5C,#2D6A9F);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="white" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="white" stroke-width="1.3" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Análisis de Riesgo con IA</div>
+              <div style="font-size:11px;color:var(--text-muted)">Generado por Claude — Anthropic</div>
+            </div>
+          </div>
+          <button id="btn-ai" onclick="generateAIAnalysis()" style="height:36px;padding:0 16px;background:linear-gradient(135deg,#1B3A5C,#2D6A9F);color:white;border:none;border-radius:var(--radius-sm);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .15s">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1L8 5h4l-3 2.5 1 4-3.5-2.5L3 11.5l1-4L1 5h4z" stroke="white" stroke-width="1.2" fill="none"/></svg>
+            <span id="btn-ai-label">Generar análisis</span>
+          </button>
+        </div>
+        <div id="ai-loading" style="display:none;text-align:center;padding:2rem;color:var(--text-muted);font-size:13px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="display:block;margin:0 auto 8px;animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Claude está analizando el perfil de riesgo...
+        </div>
+        <div id="ai-result" style="display:none;font-size:13px;line-height:1.7;color:var(--text-primary);background:var(--bg);border-radius:var(--radius-sm);padding:1.25rem;border:1px solid var(--border)"></div>
+        <div id="ai-error" style="display:none;font-size:13px;color:var(--red);background:var(--red-light);border-radius:var(--radius-sm);padding:10px 14px;border:1px solid #F5C6CB"></div>
+      </div>
+    </div>
+
+    <!-- PANTALLA 4: HISTORIAL -->
+    <div class="screen" id="screen4">
+      <div class="hist-toolbar">
+        <h2>Historial de evaluaciones</h2>
+        <div class="hist-actions">
+          <button class="btn-outline" style="height:36px;font-size:12px;gap:5px" onclick="syncFromSupabase()" id="btn-sync-sb">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" id="sync-sb-icon"><path d="M2 6.5a4.5 4.5 0 0 1 7.5-3.3M11 6.5a4.5 4.5 0 0 1-7.5 3.3M11 3v3h-3M2 10V7h3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Sincronizar
+          </button>
+          <button class="btn-outline" style="height:36px;font-size:12px;gap:5px" onclick="exportCSV()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 9v2h9V9M6.5 1v7M4 6l2.5 2.5L9 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Exportar CSV
+          </button>
+          <button class="btn-outline" style="height:36px;font-size:12px;gap:5px;color:var(--red)" onclick="clearHistory()">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 3.5h9M5 3.5V2h3v1.5M10.5 3.5l-.5 8h-7l-.5-8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Limpiar local
+          </button>
+        </div>
+      </div>
+      <div id="hist-sync-status" style="display:none;font-size:12px;padding:8px 12px;border-radius:var(--radius-sm);margin-bottom:.75rem;border:1px solid var(--border);background:var(--surface2)"></div>
+      <div class="hist-filter" id="hist-filter">
+        <button class="filt-btn on" onclick="filterHist('all',this)">Todas</button>
+        <button class="filt-btn" onclick="filterHist('formal',this)">Evaluación formal</button>
+        <button class="filt-btn" onclick="filterHist('basic',this)">Revisión básica</button>
+        <button class="filt-btn" onclick="filterHist('none',this)">No aplica</button>
+      </div>
+      <div id="hist-list"></div>
+
+      <!-- SUPABASE CONFIG PANEL -->
+      <div class="sb-panel" id="sb-panel">
+        <div class="sb-panel-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l6 3v4c0 3.5-2.5 6-6 7C2.5 14 0 11.5 0 8V4l8-3z" stroke="#1B3A5C" stroke-width="1.3" fill="none"/><path d="M5 8l2 2 4-4" stroke="#1B3A5C" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Sincronización con Supabase
+        </div>
+        <div class="sb-panel-status">
+          <div class="status-dot" id="panel-dot"></div>
+          <span id="panel-status-text" style="font-size:12px;color:var(--text-secondary)">Verificando conexión...</span>
+        </div>
+        <div class="sb-stats-row" id="sb-stats-row" style="display:none">
+          <span class="sb-stat">Último envío: <strong id="sb-last-sync">—</strong></span>
+          <span class="sb-stat">Enviadas hoy: <strong id="sb-today-count">0</strong></span>
+        </div>
+        <p class="sb-hint" style="margin-top:.75rem">Cada evaluación completada se envía automáticamente a Supabase. Todos los miembros del equipo comparten la misma base de datos centralizada.</p>
+        <div class="queue-info" id="queue-info"></div>
+      </div>
+    </div>
+
+    <!-- PANTALLA 5: ESTADÍSTICAS -->
+    <div class="screen" id="screen5">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <h2 style="font-size:18px;font-weight:600">Panel de estadísticas</h2>
+        <span style="font-size:12px;color:var(--text-muted)" id="stats-period">Datos del historial local</span>
+      </div>
+      <div id="stats-empty" style="display:none" class="hist-empty">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style="margin:0 auto 1rem;display:block;opacity:.3"><rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" stroke-width="2"/><path d="M12 28v-8M18 28V16M24 28v-12M30 28V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        No hay evaluaciones registradas aún. Completa una evaluación para ver estadísticas.
+      </div>
+      <div id="stats-content">
+        <!-- TOGGLE LOCAL / EQUIPO -->
+        <div style="display:flex;gap:6px;margin-bottom:1.25rem;background:var(--surface2);padding:4px;border-radius:var(--radius-sm);width:fit-content">
+          <button id="toggle-local" onclick="switchStatsMode('local')" style="height:30px;padding:0 14px;border:none;border-radius:6px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;background:var(--accent);color:white;transition:all .15s">Mi historial</button>
+          <button id="toggle-equipo" onclick="switchStatsMode('equipo')" style="height:30px;padding:0 14px;border:none;border-radius:6px;font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;background:transparent;color:var(--text-secondary);transition:all .15s">Todo el equipo</button>
+        </div>
+        <div id="stats-loading" style="display:none;text-align:center;padding:2rem;color:var(--text-muted);font-size:13px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="display:block;margin:0 auto 8px;animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Cargando datos del equipo desde Supabase...
+        </div>
+        <div class="stats-grid" id="stats-cards"></div>
+        <div class="chart-wrap">
+          <p class="chart-title" id="chart-title-niveles">Distribución por nivel de riesgo</p>
+          <div id="chart-niveles"></div>
+        </div>
+        <div class="chart-wrap">
+          <p class="chart-title">Evaluaciones por empresa</p>
+          <div id="chart-empresas"></div>
+        </div>
+        <div class="chart-wrap">
+          <p class="chart-title">Disparadores más frecuentes</p>
+          <div class="trigger-stats" id="chart-triggers"></div>
+        </div>
+        <div class="export-note" id="stats-footer-note">
+          <strong style="color:var(--accent)">🟢 Supabase conectado:</strong> Los datos de todo el equipo se centralizan automáticamente. Conecta Power BI a Supabase con la cadena de conexión PostgreSQL para reportes gerenciales en tiempo real.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h3 id="modal-title">Detalle de evaluación</h3>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-email" style="flex:1" onclick="modalEmail()">Reenviar por correo</button>
+      <button class="btn-outline" style="flex:1" onclick="modalDownload()">Descargar HTML</button>
+      <button class="btn-outline" style="flex:1;color:var(--red)" onclick="modalDelete()">Eliminar local</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════════
+   SUPABASE CONFIG
+   ══════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://htjhbzugietjuacupjcv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_qDZISrGK8nJw5CLsuGWplw_ONkMB4VJ';
+const TABLE = 'evaluaciones_riesgos';
+
+/* ══════════════════════════════════════════════
+   DATOS / PREGUNTAS
+   ══════════════════════════════════════════════ */
+const QUESTIONS=[
+  {id:1,trigger:false,text:"¿Este proyecto agrega o modifica algún proceso en la estructura del negocio?",example:"<strong>Ejemplos:</strong> nuevo proceso que antes no existía, rediseño de un flujo actual, nueva línea de operación o modificación de cómo se ejecuta un proceso existente."},
+  {id:2,trigger:true,text:"¿El proyecto involucra información confidencial, privada o regulada por ley?",example:"<strong>Ejemplos:</strong> cédulas, cuentas bancarias, salarios, datos de salud, información sujeta a normativa de la SB, SIPEN o SIS."},
+  {id:3,trigger:true,text:"¿Si este proyecto falla o se interrumpe, afecta la continuidad operativa o el servicio a clientes?",example:"<strong>Ejemplos:</strong> pagos que no se procesan, sucursales sin operación, clientes sin atención, procesos críticos detenidos."},
+  {id:4,trigger:false,text:"¿Este proyecto agrega o modifica elementos tecnológicos en la infraestructura que soporta los procesos del negocio?",example:"<strong>Ejemplos:</strong> nuevo software, actualización de sistema, nueva integración entre plataformas, cambio de configuración de infraestructura existente."},
+  {id:5,trigger:true,text:"¿Interviene algún proveedor externo, consultor o servicio digital con acceso a información o sistemas de la empresa?",example:"<strong>Ejemplos:</strong> empresa de software, plataforma en la nube, outsourcing, firma consultora con acceso a datos o sistemas internos."},
+  {id:6,trigger:false,text:"¿Este proyecto agrega MÁS DE UNA actividad o control dentro de un procedimiento ya existente?",example:"<strong>Ejemplos:</strong> agregar varios pasos de validación, incluir múltiples controles nuevos dentro de un procedimiento que ya existe. <strong>OJO:</strong> agregar solo una actividad no dispara evaluación formal por sí sola."},
+  {id:7,trigger:true,text:"¿El proyecto cambia la forma en que se ejecuta el trabajo, quién aprueba qué, o elimina pasos de control existentes?",example:"<strong>Ejemplos:</strong> nuevo flujo de aprobación, eliminación de una revisión manual, cambio de responsable de un proceso o control crítico."},
+  {id:8,trigger:true,text:"¿Un error o mala ejecución de este proyecto podría generar pérdidas económicas, multas o daño reputacional para el Grupo CFC?",example:"<strong>Ejemplos:</strong> cobros incorrectos, sanciones regulatorias, noticias negativas, pérdida de clientes o reclamos legales."}
+];
+const TRIGGER_IDS=[2,3,5,7,8];
+const TRIGGER_LABELS={2:'P2: Información confidencial o regulada',3:'P3: Continuidad operativa',5:'P5: Proveedores y terceros',6:'P6: Múltiples actividades en proceso existente',7:'P7: Cambios en aprobaciones o controles',8:'P8: Riesgo financiero o reputacional'};
+const Q_SHORTS=['Procesos del negocio','Información confidencial o regulada','Continuidad operativa','Elementos tecnológicos','Proveedores y terceros','Múltiples actividades en procedimiento','Cambios en aprobaciones o controles','Riesgo financiero o reputacional'];
+const HIST_KEY='cfc_rbd_history_v6';
+const FORM_VERSION='v7.0';
+
+let currentQ=0,answers=new Array(8).fill(null),meta={};
+let lastLevel='',lastTriggers=[],lastDocs=[];
+let currentFilter='all',modalItemId=null;
+let sbConnected=false;
+let syncStats={lastSync:null,todayCount:0};
+
+/* ── COLA DE REINTENTOS OFFLINE ── */
+const QUEUE_KEY='cfc_rbd_retry_queue';
+function getQueue(){try{return JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]')}catch{return[]}}
+function saveQueue(q){localStorage.setItem(QUEUE_KEY,JSON.stringify(q))}
+function addToQueue(record){
+  const q=getQueue();
+  if(!q.find(r=>r.id===record.id)){q.push(record);saveQueue(q);}
+}
+function removeFromQueue(id){
+  const q=getQueue().filter(r=>r.id!==id);saveQueue(q);
+}
+async function flushQueue(){
+  const q=getQueue();
+  if(q.length===0)return;
+  let flushed=0;
+  for(const record of q){
+    try{
+      await supabaseInsert(record);
+      removeFromQueue(record.id);
+      flushed++;
+    }catch(e){break;}// Si falla uno, para — no saturar
+  }
+  if(flushed>0){
+    updateSyncStats();
+    const rem=getQueue().length;
+    setSbBar('on',`Supabase sincronizado — ${flushed} pendiente${flushed!==1?'s':''} enviado${flushed!==1?'s':''}${rem>0?' · '+rem+' aún pendiente':''}`);
+    toast(`✓ ${flushed} evaluación${flushed!==1?'es':''} pendiente${flushed!==1?'s':''} sincronizada${flushed!==1?'s':''}`);
+    updateQueueBadge();
+  }
+}
+function updateQueueBadge(){
+  const q=getQueue();
+  const badge=document.getElementById('queue-badge');
+  const info=document.getElementById('queue-info');
+  if(badge){
+    if(q.length>0){badge.style.display='inline-block';badge.textContent=q.length;}
+    else badge.style.display='none';
+  }
+  if(info){
+    if(q.length>0){
+      info.style.display='block';
+      info.innerHTML=`<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="#B45309" stroke-width="1.2"/><path d="M6 3.5v3l2 1.5" stroke="#B45309" stroke-width="1.2" stroke-linecap="round"/></svg> <strong>${q.length}</strong> evaluación${q.length!==1?'es':''} pendiente${q.length!==1?'s':''} de sincronizar — <button onclick="flushQueue()" style="background:none;border:none;color:var(--accent);font-size:12px;font-weight:600;cursor:pointer;padding:0;text-decoration:underline">Reintentar ahora</button>`;
+    } else info.style.display='none';
+  }
+}
+// Escuchar cuando el navegador recupera conexión
+window.addEventListener('online',()=>{
+  setSbBar('sync','Conexión recuperada — sincronizando pendientes...');
+  setTimeout(()=>flushQueue(),1500);
+});
+
+/* ══════════════════════════════════════════════
+   SUPABASE — FUNCIONES CORE
+   ══════════════════════════════════════════════ */
+async function supabaseInsert(record){
+  const payload={
+    id:                    record.id,
+    timestamp:             record.ts,
+    fecha:                 record.meta.fecha||null,
+    proyecto:              record.meta.proyecto,
+    empresa:               record.meta.empresa,
+    responsable:           record.meta.resp,
+    correo_responsable:    record.meta.correoResp,
+    correo_riesgos:        record.meta.correoRiesgos,
+    nivel_riesgo:          record.level,
+    nivel_texto:           {none:'No Aplica',basic:'Revision Basica',formal:'Evaluacion Formal'}[record.level],
+    disparadores:          record.triggers.map(id=>TRIGGER_LABELS[id]).join('; '),
+    cantidad_disparadores: record.triggers.length,
+    p1_manejo_datos:       record.answers[0],
+    p2_datos_sensibles:    record.answers[1],
+    p3_continuidad:        record.answers[2],
+    p4_tecnologia:         record.answers[3],
+    p5_proveedores:        record.answers[4],
+    p6_regulatorio:        record.answers[5],
+    p7_cambios_procesos:   record.answers[6],
+    p8_riesgo_financiero:  record.answers[7],
+    total_si:              record.answers.filter(a=>a==='si').length,
+    total_no:              record.answers.filter(a=>a==='no').length,
+    total_ns:              record.answers.filter(a=>a==='ns').length,
+    comentarios:           record.meta.comentarios||null,
+    descripcion:           record.meta.descripcion||null,
+    version_formulario:    record.meta.version||FORM_VERSION
+  };
+
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`,{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'apikey':SUPABASE_KEY,
+      'Authorization':`Bearer ${SUPABASE_KEY}`,
+      'Prefer':'return=minimal'
+    },
+    body:JSON.stringify(payload)
+  });
+
+  if(!res.ok){
+    const err=await res.text();
+    throw new Error(`Supabase ${res.status}: ${err}`);
+  }
+  return true;
+}
+
+async function checkSupabaseConnection(){
+  setSbBar('sync','Conectando con Supabase...');
+  try{
+    // Ping liviano: intenta leer 0 filas
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?limit=0`,{
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':`Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if(res.ok||res.status===401){
+      // 401 = tabla existe pero RLS bloquea SELECT para anon — es correcto
+      sbConnected=true;
+      setSbBar('on','Supabase conectado — evaluaciones se sincronizan automáticamente');
+      updatePanelStatus(true,'Conexión activa — datos centralizados');
+    } else {
+      throw new Error('HTTP '+res.status);
+    }
+  }catch(e){
+    sbConnected=false;
+    setSbBar('err','Sin conexión a Supabase — datos guardados localmente');
+    updatePanelStatus(false,'Sin conexión — verifica tu red');
+  }
+}
+
+function setSbBar(state,msg){
+  const bar=document.getElementById('sb-bar');
+  const dot=document.getElementById('sb-dot');
+  const text=document.getElementById('sb-text');
+  bar.className='sb-bar';
+  dot.className='sb-dot';
+  if(state==='on'){bar.classList.add('connected');dot.classList.add('on')}
+  else if(state==='err'){bar.classList.add('error');dot.classList.add('err')}
+  else{dot.classList.add('sync')}
+  text.textContent=msg;
+}
+
+function updatePanelStatus(ok,msg){
+  const dot=document.getElementById('panel-dot');
+  const txt=document.getElementById('panel-status-text');
+  const statsRow=document.getElementById('sb-stats-row');
+  if(dot)dot.className='status-dot '+(ok?'dot-on':'dot-err');
+  if(txt)txt.textContent=msg;
+  if(statsRow&&ok)statsRow.style.display='flex';
+}
+
+function updateSyncStats(){
+  const now=new Date();
+  syncStats.lastSync=now;
+  syncStats.todayCount++;
+  const el=document.getElementById('sb-last-sync');
+  const cnt=document.getElementById('sb-today-count');
+  if(el)el.textContent=now.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'});
+  if(cnt)cnt.textContent=syncStats.todayCount;
+}
+
+/* ══════════════════════════════════════════════
+   LOCAL STORAGE
+   ══════════════════════════════════════════════ */
+function getHistory(){try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')}catch{return[]}}
+function saveHistory(h){localStorage.setItem(HIST_KEY,JSON.stringify(h))}
+
+function toast(msg,dur=2800){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+function updateHeaderCounts(){
+  const h=getHistory();
+  const cnt=document.getElementById('hist-count');
+  if(h.length>0){cnt.style.display='inline-block';cnt.textContent=h.length}
+  else cnt.style.display='none';
+}
+
+/* ══════════════════════════════════════════════
+   NAVEGACIÓN
+   ══════════════════════════════════════════════ */
+function goScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const map={'screen1':'nav-nueva','screen4':'nav-hist','screen5':'nav-stats'};
+  if(map[id])document.getElementById(map[id]).classList.add('active');
+  if(id==='screen4')renderHistory();
+  if(id==='screen5')renderStats();
+}
+function setScreen(id){goScreen(id)}
+
+/* ══════════════════════════════════════════════
+   CUESTIONARIO
+   ══════════════════════════════════════════════ */
+function startQuiz(){
+  const p=document.getElementById('f-proyecto').value.trim();
+  const e=document.getElementById('f-empresa').value;
+  const r=document.getElementById('f-responsable').value.trim();
+  const cr=document.getElementById('f-correo-resp').value.trim();
+  const cri=document.getElementById('f-correo-riesgos').value.trim();
+  const f=document.getElementById('f-fecha').value;
+  const err=document.getElementById('error-s1');
+  const emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!p||!e||!r||!cr||!cri||!f){
+    err.innerHTML='<p class="err-msg">Por favor completa todos los campos antes de continuar.</p>';
+    err.style.display='block';return;
+  }
+  if(!emailRx.test(cr)){
+    err.innerHTML='<p class="err-msg">El correo del responsable no es válido. Ejemplo: nombre@grupocfc.com</p>';
+    err.style.display='block';
+    document.getElementById('f-correo-resp').focus();return;
+  }
+  if(!emailRx.test(cri)){
+    err.innerHTML='<p class="err-msg">El correo del Encargado de Riesgos no es válido. Ejemplo: riesgos@grupocfc.com</p>';
+    err.style.display='block';
+    document.getElementById('f-correo-riesgos').focus();return;
+  }
+  err.style.display='none';
+  const comentarios=document.getElementById('f-comentarios').value.trim();
+  const descripcion=document.getElementById('f-descripcion').value.trim();
+  meta={proyecto:p,empresa:e,resp:r,correoResp:cr,correoRiesgos:cri,fecha:f,comentarios,descripcion,version:FORM_VERSION};
+  currentQ=0;answers=new Array(8).fill(null);
+  renderQuestion();setScreen('screen2');
+}
+
+function renderQuestion(){
+  const q=QUESTIONS[currentQ],n=currentQ+1;
+  document.getElementById('prog-fraction').textContent=n+' / 8';
+  document.getElementById('prog-bar').style.width=(n/8*100)+'%';
+  document.getElementById('q-badge-wrap').innerHTML=q.trigger
+    ?`<div class="q-badge trigger"><span class="trigger-dot"></span>Pregunta disparadora — activa evaluación formal automáticamente</div>`
+    :`<div class="q-badge">Pregunta ${n} de 8</div>`;
+  document.getElementById('q-text').textContent=q.text;
+  document.getElementById('q-example').innerHTML=q.example;
+  const cur=answers[currentQ];
+  document.getElementById('answer-group').innerHTML=`
+    <button class="ans-btn ${cur==='si'?'selected-si':''}" onclick="selectAnswer('si')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sí
+    </button>
+    <button class="ans-btn ${cur==='no'?'selected-no':''}" onclick="selectAnswer('no')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>No
+    </button>
+    <button class="ans-btn ${cur==='ns'?'selected-ns':''}" onclick="selectAnswer('ns')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>No estoy seguro/a
+    </button>`;
+  document.getElementById('btn-back').style.visibility=currentQ===0?'hidden':'visible';
+  document.getElementById('btn-next').disabled=answers[currentQ]===null;
+  document.getElementById('next-label').textContent=currentQ===7?'Ver resultado':'Siguiente';
+}
+
+function selectAnswer(val){answers[currentQ]=val;renderQuestion()}
+function nextQ(){if(answers[currentQ]===null)return;currentQ<7?(currentQ++,renderQuestion()):showResult()}
+function prevQ(){if(currentQ>0){currentQ--;renderQuestion()}}
+
+/* ══════════════════════════════════════════════
+   EVALUACIÓN Y RESULTADO
+   ══════════════════════════════════════════════ */
+function evaluate(){
+  const siCount=answers.filter(a=>a==='si').length;
+  const hasNS=answers.some(a=>a==='ns');
+  const triggersFired=TRIGGER_IDS.filter(id=>answers[id-1]==='si');
+  const p1si=answers[0]==='si';
+  const p6si=answers[5]==='si';
+  const p6p1combo=p1si&&p6si;
+
+  if(answers.every(a=>a==='no'))return{level:'none',triggersFired:[]};
+  if(triggersFired.length>0||siCount>=2||p6p1combo){
+    const extraTriggers=p6p1combo&&!triggersFired.includes(6)
+      ?[...triggersFired,6]
+      :triggersFired;
+    return{level:'formal',triggersFired:extraTriggers};
+  }
+  if(hasNS||siCount===1)return{level:'basic',triggersFired:[]};
+  return{level:'none',triggersFired:[]};
+}
+
+function fmtDate(d){return d?new Date(d+'T00:00:00').toLocaleDateString('es-DO',{year:'numeric',month:'long',day:'numeric'}):''}
+
+function buildDocs(level, customAnswers){
+  if(level!=='formal')return[];
+  const ans=customAnswers||answers;
+  const ep=ans[1]==='si'||ans[3]==='si'||ans[6]==='si';
+  return[
+    {name:'Propuesta del proyecto',cond:'Siempre requerida'},
+    ep?{name:'Flujo del proceso actual (AS-IS)',cond:'Requerida: proceso existente detectado'}:null,
+    {name:'Flujo del proceso deseado (TO-BE)',cond:'Siempre requerida'},
+    {name:'Estructura tecnológica que soporta el proyecto',cond:'Siempre requerida'}
+  ].filter(Boolean);
+}
+
+function renderResult(level,triggersFired,docs,targetMeta,targetAnswers){
+  const meta2=targetMeta||meta;
+  const ans2=targetAnswers||answers;
+  document.getElementById('result-meta').innerHTML=`
+    <span class="meta-pill"><span class="meta-label">Proyecto:</span> ${meta2.proyecto}</span>
+    <span class="meta-pill"><span class="meta-label">Empresa:</span> ${meta2.empresa}</span>
+    <span class="meta-pill"><span class="meta-label">Responsable:</span> ${meta2.resp}</span>
+    <span class="meta-pill"><span class="meta-label">Fecha:</span> ${fmtDate(meta2.fecha)}</span>
+    <span class="meta-pill" style="font-size:11px;color:var(--text-muted)"><span class="meta-label">Formulario:</span> ${meta2.version||FORM_VERSION}</span>
+    ${meta2.comentarios?`<div style="width:100%;margin-top:6px;font-size:13px;color:var(--text-secondary);background:var(--surface2);border-radius:var(--radius-sm);padding:8px 12px;border-left:3px solid var(--accent)"><span style="font-weight:600;color:var(--text-primary)">Comentarios:</span> ${meta2.comentarios}</div>`:''}
+  `;
+  const sem=document.getElementById('sem-circle'),icon=document.getElementById('sem-icon');
+  const title=document.getElementById('result-title'),sub=document.getElementById('result-subtitle');
+  ['trigger-section','docs-section','checklist-section'].forEach(id=>document.getElementById(id).style.display='none');
+  if(level==='none'){
+    sem.className='semaforo sem-green';
+    icon.innerHTML=`<path d="M10 18l-6-6 2-2 4 4 8-8 2 2z" fill="white"/>`;
+    title.textContent='No aplica evaluación formal';title.style.color='var(--green)';
+    sub.textContent='El proyecto no presenta factores de riesgo identificados. Puede proceder sin proceso adicional de Risk by Design.';
+  }
+  if(level==='basic'){
+    sem.className='semaforo sem-yellow';
+    icon.innerHTML=`<circle cx="18" cy="18" r="8" fill="white" opacity=".9"/><path d="M18 12v6l4 3" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round"/>`;
+    title.textContent='Revisión básica recomendada';title.style.color='#B45309';
+    sub.textContent='El proyecto tiene algunas características que requieren una verificación rápida antes de continuar.';
+    document.getElementById('checklist-section').style.display='block';
+    document.getElementById('checklist-list').innerHTML=[
+      'Identificar a qué área o proceso impacta el proyecto y documentarlo brevemente.',
+      'Verificar si existen políticas o procedimientos existentes que apliquen.',
+      'Confirmar con el responsable si hay incertidumbre sobre las preguntas contestadas.',
+      'Contactar a Riesgos y Controles si alguna respuesta cambia a "Sí".',
+      'Registrar la evaluación y archivar junto a la documentación del proyecto.'
+    ].map((t,i)=>`<div class="check-item"><div class="check-num">${i+1}</div><span>${t}</span></div>`).join('');
+  }
+  if(level==='formal'){
+    sem.className='semaforo sem-red';
+    icon.innerHTML=`<path d="M18 10v8M18 22h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`;
+    title.textContent='Evaluación formal de riesgos requerida';title.style.color='var(--red)';
+    sub.textContent='Este proyecto debe pasar por el proceso completo de Risk by Design. Contacta al área de Riesgos y Controles con la documentación requerida.';
+    if(triggersFired.length>0){
+      document.getElementById('trigger-section').style.display='block';
+      document.getElementById('trigger-list').innerHTML=triggersFired.map(id=>`<div class="trigger-chip"><span class="trigger-dot"></span>${TRIGGER_LABELS[id]}</div>`).join('');
+    }
+    document.getElementById('docs-section').style.display='block';
+    document.getElementById('doc-list').innerHTML=docs.map(d=>`
+      <div class="doc-item">
+        <div class="doc-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7.5 8,2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="doc-text"><div class="doc-name">${d.name}</div><div class="doc-cond">${d.cond}</div></div>
+      </div>`).join('');
+  }
+  const badgeMap={si:['badge-si','Sí'],no:['badge-no','No'],ns:['badge-ns','No estoy seguro/a']};
+  document.getElementById('summary-grid').innerHTML=ans2.map((a,i)=>{
+    const[cls,lbl]=badgeMap[a];
+    return`<div class="summary-row"><span class="summary-q">${TRIGGER_IDS.includes(i+1)?'⚡ ':''}${Q_SHORTS[i]}</span><span class="summary-badge ${cls}">${lbl}</span></div>`;
+  }).join('');
+}
+
+function showResult(){
+  const{level,triggersFired}=evaluate();
+  lastLevel=level;lastTriggers=triggersFired;lastDocs=buildDocs(level);
+  renderResult(level,triggersFired,lastDocs);
+  saveEvaluation();
+  // Mostrar panel IA solo en evaluación formal
+  const aiPanel=document.getElementById('ai-panel');
+  const aiResult=document.getElementById('ai-result');
+  const aiError=document.getElementById('ai-error');
+  if(aiPanel){
+    aiPanel.style.display='block';
+    if(aiResult)aiResult.style.display='none';
+    if(aiError)aiError.style.display='none';
+    document.getElementById('btn-ai-label').textContent='Generar análisis';
+    document.getElementById('btn-ai').disabled=false;
+  }
+  setScreen('screen3');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function generateAIAnalysis(){
+  const btn=document.getElementById('btn-ai');
+  const loading=document.getElementById('ai-loading');
+  const result=document.getElementById('ai-result');
+  const error=document.getElementById('ai-error');
+  btn.disabled=true;
+  document.getElementById('btn-ai-label').textContent='Analizando...';
+  loading.style.display='block';
+  result.style.display='none';
+  error.style.display='none';
+
+  const badgeMap={si:'Sí',no:'No',ns:'No estoy seguro/a'};
+  const respuestas=answers.map((a,i)=>`${i+1}. ${Q_SHORTS[i]}: ${badgeMap[a]}`).join('\n');
+  const disparadoresTexto=lastTriggers.length>0
+    ?lastTriggers.map(id=>TRIGGER_LABELS[id]).join(', ')
+    :'Ninguno';
+  const nivelTexto={none:'No aplica evaluación formal',basic:'Revisión básica recomendada',formal:'Evaluación formal de riesgos requerida'}[lastLevel];
+
+  const prompt=`Eres un experto en gestión de riesgos corporativos para el Grupo CFC, un holding financiero dominicano. Las empresas del grupo son:
+
+- **Seguros Crecer**: Aseguradora dominicana del grupo.
+- **AFP Crecer RD**: Administradora de Fondos de Pensiones (AFP) en República Dominicana, supervisada por la SIPEN.
+- **AFP Crecer El Salvador**: Administradora de Fondos de Pensiones en El Salvador.
+- **Affinity**: TPA (Third Party Administrator) especializado en programas de afinidad, seguros masivos e inclusivos. Opera en Banca Seguros, Micro Seguros, Mercadeo Directo y Masivo de Seguros.
+- **CrecerLAB**: Núcleo de innovación y emprendimiento del grupo. Concibe, experimenta y lanza soluciones pioneras que catalizan la transformación empresarial y generan valor agregado.
+- **Auxilia**: Empresa dominicana especializada en servicios integrales de asistencia con enfoque en personalización y automatización. Servicios: Asistencia Vial, Asistencia Total Hogar, Movilidad, Concierge, Asistencia en Viajes, Garantía Extendida, Adulto Mayor y Servicios Especializados.
+- **Grupo CFC**: Holding que agrupa todas las empresas anteriores.
+
+El marco normativo aplicable incluye: Ley 172-13 (Protección de Datos Personales RD), Art. 44 Constitución RD, normativas de la SIPEN (para AFPs), normativas de la SIS (para seguros), y políticas internas de Risk by Design del Grupo CFC.
+
+Se completó una evaluación de riesgos con los siguientes datos:
+
+PROYECTO: ${meta.proyecto}
+EMPRESA: ${meta.empresa}
+RESPONSABLE: ${meta.resp}
+FECHA: ${meta.fecha}
+RESULTADO: ${nivelTexto}
+DISPARADORES ACTIVADOS: ${disparadoresTexto}
+${meta.descripcion?'DESCRIPCIÓN DEL PROYECTO: '+meta.descripcion:''}
+${meta.comentarios?'COMENTARIOS ADICIONALES: '+meta.comentarios:''}
+
+RESPUESTAS AL CUESTIONARIO:
+${respuestas}
+
+Genera un análisis ejecutivo completo con exactamente estas 4 secciones en español:
+
+**1. PERFIL DE RIESGO DEL PROYECTO**
+Describe en 2-3 oraciones el perfil de riesgo específico de este proyecto basándote en las respuestas.
+
+**2. ANÁLISIS DE DISPARADORES**
+Para cada disparador activado, explica por qué es relevante para este proyecto específico y qué riesgo concreto representa para ${meta.empresa}.
+
+**3. RECOMENDACIONES PARA EL ÁREA DE RIESGOS**
+Lista 3-5 recomendaciones concretas y accionables para el proceso de evaluación formal de Risk by Design.
+
+**4. NIVEL DE URGENCIA**
+Determina si la urgencia es ALTA, MEDIA o BAJA y justifica en 1-2 oraciones basándote en los disparadores y el tipo de proyecto.
+
+Sé específico, directo y profesional. No uses lenguaje genérico — conecta cada punto con el proyecto "${meta.proyecto}" y la empresa ${meta.empresa}.`;
+
+  try{
+    const response=await fetch('https://claude-proxy-cfc.rafdiaz.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await response.json();
+    const text=data.content?.map(b=>b.text||'').join('')||'';
+    if(!text)throw new Error('Respuesta vacía de Claude');
+    // Formatear markdown básico
+    const formatted=text
+      .replace(/^### (.*?)$/gm,'<h4 style="font-size:13px;font-weight:700;color:var(--accent);margin:1rem 0 .4rem">$1</h4>')
+      .replace(/^## (.*?)$/gm,'<h3 style="font-size:14px;font-weight:700;color:var(--text-primary);margin:1.25rem 0 .5rem;padding-bottom:4px;border-bottom:1px solid var(--border)">$1</h3>')
+      .replace(/^# (.*?)$/gm,'<h2 style="font-size:15px;font-weight:700;color:var(--accent);margin:0 0 1rem">$1</h2>')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/^---$/gm,'')
+      .replace(/\n\n/g,'</p><p style="margin:.5rem 0">')
+      .replace(/\n/g,'<br>');
+    loading.style.display='none';
+    result.style.display='block';
+    result.innerHTML='<p>'+formatted+'</p>';
+    document.getElementById('btn-ai-label').textContent='Regenerar';
+    btn.disabled=false;
+  }catch(e){
+    console.error('Claude API error:',e);
+    loading.style.display='none';
+    error.style.display='block';
+    error.textContent='Error al conectar con Claude. Verifica tu conexión e intenta de nuevo.';
+    document.getElementById('btn-ai-label').textContent='Reintentar';
+    btn.disabled=false;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   GUARDAR EVALUACIÓN (LOCAL + SUPABASE)
+   ══════════════════════════════════════════════ */
+function saveEvaluation(){
+  const h=getHistory();
+  const record={
+    id:Date.now().toString(),
+    ts:new Date().toISOString(),
+    meta:{...meta},
+    answers:[...answers],
+    level:lastLevel,
+    triggers:[...lastTriggers],
+    docs:[...lastDocs]
+  };
+  h.unshift(record);
+  if(h.length>200)h.splice(200);
+  saveHistory(h);
+  updateHeaderCounts();
+  lastRecord=record;
+  pushToSupabase(record);
+}
+
+async function pushToSupabase(record){
+  setSbBar('sync','Sincronizando con Supabase...');
+  setSyncStrip('syncing','Guardando en Supabase...');
+  try{
+    await supabaseInsert(record);
+    sbConnected=true;
+    removeFromQueue(record.id);
+    updateSyncStats();
+    const hora=new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'});
+    setSbBar('on','Supabase sincronizado — ✓ '+hora);
+    updatePanelStatus(true,'Última sincronización: '+hora);
+    updateQueueBadge();
+    setSyncStrip('ok','✓ Guardado en Supabase · '+hora);
+  }catch(e){
+    console.error('Supabase push failed:',e);
+    addToQueue(record);
+    sbConnected=false;
+    const qLen=getQueue().length;
+    setSbBar('err',`Sin conexión — ${qLen} pendiente${qLen!==1?'s':''}. Se enviará al reconectar.`);
+    updatePanelStatus(false,'Sin conexión — '+qLen+' pendiente'+(qLen!==1?'s':''));
+    updateQueueBadge();
+    setSyncStrip('err','Sin conexión — evaluación guardada localmente',true);
+  }
+}
+
+function setSyncStrip(state,msg,showRetry=false){
+  const strip=document.getElementById('sync-strip');
+  const dot=document.getElementById('sync-strip-dot');
+  const txt=document.getElementById('sync-strip-text');
+  const retry=document.getElementById('sync-strip-retry');
+  if(!strip)return;
+  const styles={
+    syncing:{bg:'var(--surface2)',border:'var(--border)',dot:'var(--yellow)',spin:true},
+    ok:     {bg:'#F0FDF9',border:'#A7F3D0',dot:'var(--green)',spin:false},
+    err:    {bg:'var(--red-light)',border:'#F5C6CB',dot:'var(--red)',spin:false}
+  }[state]||{bg:'var(--surface2)',border:'var(--border)',dot:'var(--text-muted)',spin:false};
+  strip.style.background=styles.bg;
+  strip.style.borderColor=styles.border;
+  dot.style.background=styles.dot;
+  dot.style.animation=styles.spin?'pulse .8s infinite':'none';
+  txt.textContent=msg;
+  txt.style.color=state==='err'?'var(--red)':state==='ok'?'var(--green)':'var(--text-secondary)';
+  if(retry)retry.style.display=showRetry?'inline':'none';
+}
+
+let lastRecord=null;
+function retrySyncLast(){
+  if(lastRecord)pushToSupabase(lastRecord);
+  else{const q=getQueue();if(q.length>0)flushQueue();}
+}
+
+/* ══════════════════════════════════════════════
+   HISTORIAL
+   ══════════════════════════════════════════════ */
+function setHistSyncStatus(state, msg){
+  const el=document.getElementById('hist-sync-status');
+  if(!el)return;
+  const styles={
+    loading:{bg:'var(--surface2)',border:'var(--border)',color:'var(--text-secondary)'},
+    ok:     {bg:'#F0FDF9',border:'#A7F3D0',color:'var(--green)'},
+    err:    {bg:'var(--red-light)',border:'#F5C6CB',color:'var(--red)'}
+  }[state]||{bg:'var(--surface2)',border:'var(--border)',color:'var(--text-secondary)'};
+  el.style.display='block';
+  el.style.background=styles.bg;
+  el.style.borderColor=styles.border;
+  el.style.color=styles.color;
+  el.innerHTML=msg;
+}
+
+async function syncFromSupabase(){
+  const btn=document.getElementById('btn-sync-sb');
+  const icon=document.getElementById('sync-sb-icon');
+  if(btn)btn.disabled=true;
+  if(icon)icon.style.animation='spin 1s linear infinite';
+  setHistSyncStatus('loading','<span style="animation:pulse .8s infinite;display:inline-block">⏳</span> Descargando historial desde Supabase...');
+  try{
+    const res=await fetch(
+      `${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=created_at.desc&limit=200`,
+      {headers:{'apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`}}
+    );
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const rows=await res.json();
+    // Convertir filas de Supabase al formato interno del historial local
+    const mapped=rows.map(r=>({
+      id:        r.id,
+      ts:        r.timestamp||r.created_at,
+      _fromSB:   true,// marca: viene de Supabase
+      meta:{
+        proyecto:    r.proyecto,
+        empresa:     r.empresa,
+        resp:        r.responsable,
+        correoResp:  r.correo_responsable,
+        correoRiesgos:r.correo_riesgos,
+        fecha:       r.fecha
+      },
+      answers:[
+        r.p1_manejo_datos,r.p2_datos_sensibles,r.p3_continuidad,
+        r.p4_tecnologia,r.p5_proveedores,r.p6_regulatorio,
+        r.p7_cambios_procesos,r.p8_riesgo_financiero
+      ],
+      level:    r.nivel_riesgo,
+      triggers: r.disparadores
+        ? r.disparadores.split(';').map(s=>s.trim()).filter(Boolean)
+            .map(label=>Object.entries(TRIGGER_LABELS).find(([,v])=>v===label)?.[0])
+            .filter(Boolean).map(Number)
+        : [],
+      docs: r.nivel_riesgo==='formal'?buildDocsFromAnswers([
+        r.p1_manejo_datos,r.p2_datos_sensibles,r.p3_continuidad,
+        r.p4_tecnologia,r.p5_proveedores,r.p6_regulatorio,
+        r.p7_cambios_procesos,r.p8_riesgo_financiero
+      ]):[]
+    }));
+    // Fusionar sin duplicados (id es la clave)
+    const local=getHistory();
+    const localIds=new Set(local.map(r=>r.id));
+    const newOnes=mapped.filter(r=>!localIds.has(r.id));
+    const merged=[...local,...newOnes].sort((a,b)=>new Date(b.ts)-new Date(a.ts));
+    if(merged.length>200)merged.splice(200);
+    saveHistory(merged);
+    updateHeaderCounts();
+    renderHistory();
+    const msg=newOnes.length>0
+      ?`✓ ${newOnes.length} evaluación${newOnes.length!==1?'es':''} nueva${newOnes.length!==1?'s':''} descargada${newOnes.length!==1?'s':''} de Supabase · Total: ${merged.length}`
+      :`✓ Historial ya actualizado — ${merged.length} evaluación${merged.length!==1?'es':''} en total`;
+    setHistSyncStatus('ok', msg);
+  }catch(e){
+    setHistSyncStatus('err','✕ Error al conectar con Supabase. Verifica tu conexión e intenta de nuevo.');
+    console.error('Sync from Supabase error:',e);
+  }finally{
+    if(btn)btn.disabled=false;
+    if(icon)icon.style.animation='none';
+  }
+}
+
+function buildDocsFromAnswers(ans){
+  const ep=ans[1]==='si'||ans[3]==='si'||ans[6]==='si';
+  return[
+    {name:'Propuesta del proyecto',cond:'Siempre requerida'},
+    ep?{name:'Flujo del proceso actual (AS-IS)',cond:'Requerida: proceso existente detectado'}:null,
+    {name:'Flujo del proceso deseado (TO-BE)',cond:'Siempre requerida'},
+    {name:'Estructura tecnológica que soporta el proyecto',cond:'Siempre requerida'}
+  ].filter(Boolean);
+}
+
+function renderHistory(filter){
+  const f=filter||currentFilter;
+  const h=getHistory();
+  const filtered=f==='all'?h:h.filter(r=>r.level===f);
+  const list=document.getElementById('hist-list');
+  if(h.length===0){
+    list.innerHTML=`<div class="hist-empty">
+      No hay evaluaciones guardadas aún.<br>
+      <button onclick="syncFromSupabase()" style="margin-top:.75rem;background:var(--accent);color:white;border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
+        ↓ Cargar desde Supabase
+      </button>
+    </div>`;
+    return;
+  }
+  if(filtered.length===0){list.innerHTML='<div class="hist-empty">No hay evaluaciones con este filtro.</div>';return}
+  const semClass={none:'hs-g',basic:'hs-y',formal:'hs-r'};
+  const semIcon={
+    none:'<path d="M10 18l-6-6 2-2 4 4 8-8 2 2z" fill="white"/>',
+    basic:'<path d="M12 8v4M12 15h.01" stroke="white" stroke-width="2" stroke-linecap="round"/>',
+    formal:'<path d="M12 8v4M12 15h.01" stroke="white" stroke-width="2" stroke-linecap="round"/>'
+  };
+  const badgeClass={none:'hb-none',basic:'hb-basic',formal:'hb-formal'};
+  const badgeTxt={none:'No aplica',basic:'Revisión básica',formal:'Evaluación formal'};
+  list.innerHTML=filtered.map(r=>`
+    <div class="hist-item" onclick="openDetail('${r.id}')">
+      <div class="hist-sem ${semClass[r.level]}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none">${semIcon[r.level]||''}</svg></div>
+      <div class="hist-info">
+        <div class="hist-name">${r.meta.proyecto}${r._fromSB?'<span style="font-size:10px;color:var(--green);font-weight:600;margin-left:6px;vertical-align:middle">● SB</span>':''}</div>
+        <div class="hist-meta">${r.meta.empresa} · ${r.meta.resp} · ${fmtDate(r.meta.fecha)}</div>
+      </div>
+      <span class="hist-badge ${badgeClass[r.level]}">${badgeTxt[r.level]}</span>
+      <button class="hist-del" onclick="event.stopPropagation();deleteRecord('${r.id}')" title="Eliminar local">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3.5h10M5.5 3.5V2.5h3V3.5M11 3.5l-.5 9h-7l-.5-9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+function filterHist(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderHistory(f);
+}
+
+function deleteRecord(id){
+  let h=getHistory();
+  h=h.filter(r=>r.id!==id);
+  saveHistory(h);updateHeaderCounts();renderHistory();
+  toast('Eliminado del historial local (permanece en Supabase)');
+}
+
+function clearHistory(){
+  if(!confirm('¿Limpiar el historial LOCAL? Los datos en Supabase no se eliminan.'))return;
+  saveHistory([]);updateHeaderCounts();renderHistory();
+  toast('Historial local limpiado');
+}
+
+/* ══════════════════════════════════════════════
+   EXPORTAR CSV
+   ══════════════════════════════════════════════ */
+function buildCSV(){
+  const h=getHistory();
+  if(h.length===0)return null;
+  const headers=['ID','Timestamp','Fecha','Proyecto','Empresa','Responsable','Correo Resp','Nivel','Nivel Texto','Disparadores','P1','P2','P3','P4','P5','P6','P7','P8','Total Si','Total No','Total NS'];
+  const rows=h.map(r=>[
+    r.id,r.ts,r.meta.fecha,
+    `"${r.meta.proyecto}"`,r.meta.empresa,`"${r.meta.resp}"`,r.meta.correoResp,
+    r.level,
+    {none:'No Aplica',basic:'Revision Basica',formal:'Evaluacion Formal'}[r.level],
+    `"${r.triggers.map(id=>TRIGGER_LABELS[id]).join('; ')}"`,
+    ...r.answers,
+    r.answers.filter(a=>a==='si').length,
+    r.answers.filter(a=>a==='no').length,
+    r.answers.filter(a=>a==='ns').length
+  ].join(','));
+  return '\xEF\xBB\xBF'+[headers.join(','),...rows].join('\n');
+}
+
+function exportCSV(){
+  const csv=buildCSV();
+  if(!csv){toast('No hay datos para exportar');return}
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='Evaluaciones-Riesgos-CFC-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(url);
+  toast('CSV exportado');
+}
+
+/* ══════════════════════════════════════════════
+   ESTADÍSTICAS — LOCAL + EQUIPO (SUPABASE)
+   ══════════════════════════════════════════════ */
+let statsMode='local';// 'local' | 'equipo'
+
+function renderStats(){
+  switchStatsMode(statsMode);
+}
+
+function switchStatsMode(mode){
+  statsMode=mode;
+  const btnLocal=document.getElementById('toggle-local');
+  const btnEquipo=document.getElementById('toggle-equipo');
+  const activeStyle='background:var(--accent);color:white';
+  const inactiveStyle='background:transparent;color:var(--text-secondary)';
+  if(btnLocal){btnLocal.style.cssText=mode==='local'?activeStyle:inactiveStyle}
+  if(btnEquipo){btnEquipo.style.cssText=mode==='equipo'?activeStyle:inactiveStyle}
+  if(mode==='local'){
+    renderStatsFromData(getHistory(),'local');
+  } else {
+    fetchAndRenderTeamStats();
+  }
+}
+
+async function fetchAndRenderTeamStats(){
+  const loading=document.getElementById('stats-loading');
+  const cards=document.getElementById('stats-cards');
+  const empty=document.getElementById('stats-empty');
+  const content=document.getElementById('stats-content');
+  if(loading)loading.style.display='block';
+  if(cards)cards.innerHTML='';
+  ['chart-niveles','chart-empresas','chart-triggers'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML='';
+  });
+  empty.style.display='none';content.style.display='block';
+  try{
+    // Supabase RLS bloquea SELECT para anon — usamos service role workaround:
+    // Leemos con la misma key pero necesitamos una política SELECT para anon.
+    // Solución: hacer la petición y manejar el caso.
+    const res=await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=nivel_riesgo,empresa,disparadores,p1_manejo_datos,p2_datos_sensibles,p3_continuidad,p4_tecnologia,p5_proveedores,p6_regulatorio,p7_cambios_procesos,p8_riesgo_financiero,fecha&order=created_at.desc&limit=500`,{
+      headers:{
+        'apikey':SUPABASE_KEY,
+        'Authorization':`Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if(!res.ok){
+      if(res.status===401||res.status===403){
+        // RLS bloquea — mostrar instrucción
+        if(loading)loading.style.display='none';
+        if(cards)cards.innerHTML=`<div style="grid-column:1/-1;background:var(--yellow-light);border:1px solid #FCD34D;border-radius:var(--radius-sm);padding:1rem;font-size:13px;color:#92400E;line-height:1.6">
+          <strong>Acción requerida (una sola vez):</strong><br>
+          Para ver estadísticas del equipo, ejecuta este SQL en Supabase → SQL Editor:<br><br>
+          <code style="background:#fff;padding:4px 8px;border-radius:4px;font-size:12px;display:block;margin-top:6px">CREATE POLICY "read_anon" ON evaluaciones_riesgos FOR SELECT TO anon USING (true);</code><br>
+          Luego regresa aquí y haz clic en "Todo el equipo" nuevamente.
+        </div>`;
+        return;
+      }
+      throw new Error('HTTP '+res.status);
+    }
+    const rows=await res.json();
+    if(loading)loading.style.display='none';
+    if(rows.length===0){
+      empty.style.display='block';content.style.display='none';return;
+    }
+    // Transformar filas de Supabase al formato que espera renderStatsFromData
+    const mapped=rows.map(r=>({
+      level:r.nivel_riesgo,
+      meta:{empresa:r.empresa,fecha:r.fecha},
+      triggers:r.disparadores?r.disparadores.split(';').map(s=>s.trim()).filter(Boolean).map(label=>
+        Object.entries(TRIGGER_LABELS).find(([,v])=>v===label)?.[0]
+      ).filter(Boolean):[]
+    }));
+    renderStatsFromData(mapped,'equipo');
+  }catch(e){
+    if(loading)loading.style.display='none';
+    if(cards)cards.innerHTML=`<div style="grid-column:1/-1;background:var(--red-light);border:1px solid #F5C6CB;border-radius:var(--radius-sm);padding:1rem;font-size:13px;color:var(--red)">Sin conexión a Supabase. Revisa tu red e inténtalo de nuevo.</div>`;
+    console.error('Team stats fetch error:',e);
+  }
+}
+
+function renderStatsFromData(data,mode){
+  const empty=document.getElementById('stats-empty');
+  const content=document.getElementById('stats-content');
+  const loading=document.getElementById('stats-loading');
+  if(loading)loading.style.display='none';
+  if(data.length===0){empty.style.display='block';content.style.display='none';return}
+  empty.style.display='none';content.style.display='block';
+  const total=data.length;
+  const byLevel={none:0,basic:0,formal:0};
+  data.forEach(r=>byLevel[r.level]=(byLevel[r.level]||0)+1);
+  const byEmpresa={};
+  data.forEach(r=>byEmpresa[r.meta.empresa]=(byEmpresa[r.meta.empresa]||0)+1);
+  const byTrigger={};
+  data.forEach(r=>(r.triggers||[]).forEach(id=>{if(id)byTrigger[id]=(byTrigger[id]||0)+1}));
+  const srcLabel=mode==='equipo'?`${total} evaluación${total!==1?'es':''} — todo el equipo (Supabase)`:`${total} evaluación${total!==1?'es':''} en historial local`;
+  document.getElementById('stats-period').textContent=srcLabel;
+  const formalPct=total?Math.round(byLevel.formal/total*100):0;
+  document.getElementById('stats-cards').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Total evaluaciones</div><div class="stat-sub">${mode==='equipo'?'Equipo completo':'Mi historial'}</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--red)">${byLevel.formal}</div><div class="stat-lbl">Evaluación formal</div><div class="stat-sub">${formalPct}% del total</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--green)">${byLevel.none}</div><div class="stat-lbl">Sin riesgo formal</div><div class="stat-sub">${total?Math.round(byLevel.none/total*100):0}% del total</div></div>`;
+  const maxLevel=Math.max(...Object.values(byLevel),1);
+  const levelColors={none:'var(--green)',basic:'var(--yellow)',formal:'var(--red)'};
+  const levelNames={none:'No aplica',basic:'Revisión básica',formal:'Evaluación formal'};
+  document.getElementById('chart-niveles').innerHTML=Object.entries(byLevel).filter(([,v])=>v>0).map(([k,v])=>`
+    <div class="bar-row">
+      <div class="bar-label">${levelNames[k]}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v/maxLevel*100)}%;background:${levelColors[k]}">${v}</div></div>
+      <div class="bar-val">${total?Math.round(v/total*100):0}%</div>
+    </div>`).join('');
+  const sortedEmpresas=Object.entries(byEmpresa).sort((a,b)=>b[1]-a[1]);
+  const maxEmp=Math.max(...Object.values(byEmpresa),1);
+  document.getElementById('chart-empresas').innerHTML=sortedEmpresas.map(([emp,cnt])=>`
+    <div class="bar-row">
+      <div class="bar-label">${emp}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.round(cnt/maxEmp*100)}%;background:var(--accent)">${cnt}</div></div>
+      <div class="bar-val">${total?Math.round(cnt/total*100):0}%</div>
+    </div>`).join('');
+  const sortedTriggers=Object.entries(byTrigger).sort((a,b)=>b[1]-a[1]);
+  if(sortedTriggers.length===0){
+    document.getElementById('chart-triggers').innerHTML='<p style="font-size:13px;color:var(--text-muted);padding:.5rem 0">Ningún disparador activado.</p>';
+  }else{
+    document.getElementById('chart-triggers').innerHTML=sortedTriggers.map(([id,cnt])=>`
+      <div class="ts-row">
+        <span class="ts-name">${TRIGGER_LABELS[id]||'Disparador '+id}</span>
+        <span><span class="ts-count">${cnt}</span><span class="ts-pct"> veces (${total?Math.round(cnt/total*100):0}%)</span></span>
+      </div>`).join('');
+  }
+  const footer=document.getElementById('stats-footer-note');
+  if(footer){
+    footer.innerHTML=mode==='equipo'
+      ?`<strong style="color:var(--green)">🟢 Datos en tiempo real del equipo.</strong> Conecta Power BI a Supabase (PostgreSQL) para reportes gerenciales automáticos.`
+      :`<strong style="color:var(--accent)">ℹ️ Vista local.</strong> Cambia a "Todo el equipo" para ver el consolidado de Supabase.`;
+  }
+}
+
+/* ══════════════════════════════════════════════
+   EMAIL Y DESCARGA
+   ══════════════════════════════════════════════ */
+function levelLabel(l){return l==='none'?'NO APLICA EVALUACIÓN FORMAL':l==='basic'?'REVISIÓN BÁSICA RECOMENDADA':'EVALUACIÓN FORMAL DE RIESGOS REQUERIDA'}
+
+function buildEmailBody(m,ans,triggers,docs,level){
+  const badgeMap={si:'Sí',no:'No',ns:'No estoy seguro/a'};
+  const resumen=ans.map((a,i)=>`  ${i+1}. ${Q_SHORTS[i]}: ${badgeMap[a]}`).join('\n');
+  const disp=triggers.length>0?`\nDISPARADORES ACTIVADOS:\n${triggers.map(id=>`  - ${TRIGGER_LABELS[id]}`).join('\n')}`:'';
+  const docsStr=docs.length>0?`\nDOCUMENTACIÓN REQUERIDA:\n${docs.map(d=>`  - ${d.name} (${d.cond})`).join('\n')}`:'';
+  return`RESULTADO DE EVALUACIÓN DE RIESGOS — GRUPO CFC
+${'─'.repeat(50)}
+
+DATOS DEL PROYECTO:
+  Proyecto:     ${m.proyecto}
+  Empresa:      ${m.empresa}
+  Responsable:  ${m.resp}
+  Fecha:        ${fmtDate(m.fecha)}
+
+RESULTADO OBTENIDO:
+  ► ${levelLabel(level)}
+${disp}${docsStr}
+
+RESUMEN DE RESPUESTAS:
+${resumen}
+
+${'─'.repeat(50)}
+Generado por el Sistema de Evaluación de Riesgos — Grupo CFC`;
+}
+
+function sendEmail(){
+  const body=buildEmailBody(meta,answers,lastTriggers,lastDocs,lastLevel);
+  const subject=encodeURIComponent(`Resultado Evaluación de Riesgos — ${meta.proyecto} — ${fmtDate(meta.fecha)}`);
+  window.location.href=`mailto:${meta.correoResp}?cc=${encodeURIComponent(meta.correoRiesgos)}&subject=${subject}&body=${encodeURIComponent(body)}`;
+}
+
+function buildReportHTML(m,ans,triggers,docs,level){
+  const fecha=fmtDate(m.fecha);const nivel=levelLabel(level);
+  const badgeMap={si:'Sí',no:'No',ns:'No estoy seguro/a'};
+  const badgeColor={si:'#1D9E75',no:'#6B6860',ns:'#B45309'};
+  const badgeBg={si:'#E8F7F2',no:'#F2F1EE',ns:'#FEF3C7'};
+  const now=new Date().toLocaleString('es-DO',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const semColor=level==='none'?'#1D9E75':level==='basic'?'#F59E0B':'#DC3545';
+  const semIcon=level==='none'?'✓':level==='basic'?'!':'✕';
+  const triggersHTML=triggers.length>0?`<div class="section"><div class="section-title">⚡ Disparadores Activados</div><div style="display:flex;flex-wrap:wrap;gap:8px">${triggers.map(id=>`<span style="background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">${TRIGGER_LABELS[id]}</span>`).join('')}</div></div>`:'';
+  const docsHTML=docs.length>0?`<div class="section"><div class="section-title">Documentación Requerida — Risk by Design</div>${docs.map(d=>`<div style="display:flex;gap:10px;padding:10px 14px;background:#FDECEA;border:1px solid #F5C6CB;border-radius:8px;margin-bottom:6px"><span style="color:#DC3545;font-weight:700;flex-shrink:0">■</span><div><div style="font-weight:600;font-size:13px">${d.name}</div><div style="font-size:12px;color:#6B6860;margin-top:2px">${d.cond}</div></div></div>`).join('')}</div>`:'';
+  const summaryRows=ans.map((a,i)=>`<tr><td style="padding:9px 12px;font-size:13px;border-bottom:1px solid #E4E2DC">${TRIGGER_IDS.includes(i+1)?'⚡ ':''}${Q_SHORTS[i]}</td><td style="padding:9px 12px;text-align:center;border-bottom:1px solid #E4E2DC"><span style="background:${badgeBg[a]};color:${badgeColor[a]};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${badgeMap[a]}</span></td></tr>`).join('');
+  return`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Evaluación de Riesgos — ${m.proyecto}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#fff;color:#1A1917;padding:32px;max-width:800px;margin:0 auto}.header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1B3A5C;padding-bottom:16px;margin-bottom:24px}.logo-sq{width:42px;height:42px;background:#1B3A5C;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}.brand{font-size:18px;font-weight:700;color:#1B3A5C}.meta-box{background:#F8F7F4;border:1px solid #E4E2DC;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.meta-row{font-size:13px}.meta-k{font-weight:600;color:#6B6860;margin-right:6px}.result-box{border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;border:2px solid ${semColor};background:${semColor}18}.sem-circle{width:64px;height:64px;border-radius:50%;background:${semColor};display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700;margin:0 auto 12px}.result-level{font-size:20px;font-weight:700;color:${semColor}}.section{margin-bottom:20px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#A09D97;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #E4E2DC}table{width:100%;border-collapse:collapse;border:1px solid #E4E2DC;border-radius:8px;overflow:hidden}th{background:#1B3A5C;color:#fff;font-size:12px;font-weight:600;padding:10px 12px;text-align:left}tr:last-child td{border-bottom:none}.footer{margin-top:32px;padding-top:16px;border-top:1px solid #E4E2DC;display:flex;justify-content:space-between;font-size:11px;color:#A09D97}@media print{body{padding:16px}@page{size:A4;margin:1.5cm}}</style></head><body><div class="header"><div style="display:flex;align-items:center;gap:12px"><div class="logo-sq">G</div><div><div class="brand">Grupo CFC</div><div style="font-size:12px;color:#A09D97">Evaluador de Riesgos — Risk by Design</div></div></div><div style="font-size:12px;color:#6B6860;text-align:right">Formulario de Evaluación de Riesgos<br><strong>${now}</strong></div></div><div class="meta-box"><div class="meta-row"><span class="meta-k">Proyecto:</span>${m.proyecto}</div><div class="meta-row"><span class="meta-k">Empresa:</span>${m.empresa}</div><div class="meta-row"><span class="meta-k">Responsable:</span>${m.resp}</div><div class="meta-row"><span class="meta-k">Fecha:</span>${fecha}</div></div><div class="result-box"><div class="sem-circle">${semIcon}</div><div class="result-level">${nivel}</div></div>${triggersHTML}${docsHTML}<div class="section"><div class="section-title">Resumen de Respuestas</div><table><tr><th>Área de Evaluación</th><th style="width:160px;text-align:center">Respuesta</th></tr>${summaryRows}</table></div><div class="footer"><span>Documento generado automáticamente — Grupo CFC — Confidencial</span><span>Risk by Design · ${now}</span></div></body></html>`;
+}
+
+function downloadHTML(){
+  const html=buildReportHTML(meta,answers,lastTriggers,lastDocs,lastLevel);
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`Evaluacion-Riesgos-${meta.proyecto.replace(/\s+/g,'-')}-${meta.fecha}.html`;
+  a.click();URL.revokeObjectURL(url);
+}
+
+function resetAll(){
+  answers=new Array(8).fill(null);currentQ=0;
+  ['f-proyecto','f-responsable','f-correo-resp','f-correo-riesgos','f-fecha','f-comentarios','f-descripcion'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  document.getElementById('f-empresa').value='';
+  document.getElementById('error-s1').style.display='none';
+  goScreen('screen1');
+}
+
+/* ══════════════════════════════════════════════
+   MODAL DETALLE
+   ══════════════════════════════════════════════ */
+function openDetail(id){
+  const h=getHistory();
+  const r=h.find(x=>x.id===id);
+  if(!r)return;
+  modalItemId=id;
+  document.getElementById('modal-title').textContent=r.meta.proyecto+(r._fromSB?' · <span style="font-size:11px;color:var(--green);font-weight:600">Supabase</span>':'');
+  const docs=buildDocs(r.level, r.answers);
+  const badgeMap={si:'badge-si',no:'badge-no',ns:'badge-ns'};
+  const badgeTxt={si:'Sí',no:'No',ns:'No estoy seguro/a'};
+  const semColor={none:'var(--green)',basic:'#B45309',formal:'var(--red)'}[r.level];
+  const semTxt={none:'No aplica evaluación formal',basic:'Revisión básica recomendada',formal:'Evaluación formal requerida'}[r.level];
+  document.getElementById('modal-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding:12px;background:var(--bg);border-radius:var(--radius-sm)">
+      <div class="hist-sem ${r.level==='none'?'hs-g':r.level==='basic'?'hs-y':'hs-r'}" style="width:40px;height:40px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10 18l-6-6 2-2 4 4 8-8 2 2z" fill="white"/></svg></div>
+      <div><div style="font-weight:600;color:${semColor}">${semTxt}</div><div style="font-size:12px;color:var(--text-secondary)">${r.meta.empresa} · ${fmtDate(r.meta.fecha)} · <span style="color:var(--text-muted)">${r.meta.version||'—'}</span></div></div>
+    </div>
+    ${r.meta.comentarios?`<div style="margin-bottom:1rem;font-size:13px;color:var(--text-secondary);background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;border-left:3px solid var(--accent)"><span style="font-weight:600;color:var(--text-primary)">Comentarios:</span> ${r.meta.comentarios}</div>`:''}
+    ${r.triggers.length>0?`<div style="margin-bottom:1rem"><p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:.5rem">Disparadores</p><div style="display:flex;flex-wrap:wrap;gap:6px">${r.triggers.map(id=>`<div class="trigger-chip"><span class="trigger-dot"></span>${TRIGGER_LABELS[id]}</div>`).join('')}</div></div>`:''}
+    ${docs.length>0?`<div style="margin-bottom:1rem"><p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:.5rem">Documentación requerida</p>${docs.map(d=>`<div class="doc-item" style="margin-bottom:6px"><div class="doc-icon"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7.5 8,2.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="doc-text"><div class="doc-name">${d.name}</div><div class="doc-cond">${d.cond}</div></div></div>`).join('')}</div>`:''}
+    <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:.5rem">Respuestas</p>
+    ${r.answers.map((a,i)=>`<div class="summary-row"><span class="summary-q">${TRIGGER_IDS.includes(i+1)?'⚡ ':''}${Q_SHORTS[i]}</span><span class="summary-badge ${badgeMap[a]}">${badgeTxt[a]}</span></div>`).join('')}
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('open');modalItemId=null}
+
+function modalEmail(){
+  const h=getHistory();const r=h.find(x=>x.id===modalItemId);if(!r)return;
+  const docs=buildDocs(r.level);
+  const body=buildEmailBody(r.meta,r.answers,r.triggers,docs,r.level);
+  const subject=encodeURIComponent(`Resultado Evaluación de Riesgos — ${r.meta.proyecto} — ${fmtDate(r.meta.fecha)}`);
+  window.location.href=`mailto:${r.meta.correoResp}?cc=${encodeURIComponent(r.meta.correoRiesgos)}&subject=${subject}&body=${encodeURIComponent(body)}`;
+}
+
+function modalDownload(){
+  const h=getHistory();const r=h.find(x=>x.id===modalItemId);if(!r)return;
+  const docs=buildDocs(r.level);
+  const html=buildReportHTML(r.meta,r.answers,r.triggers,docs,r.level);
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`Evaluacion-${r.meta.proyecto.replace(/\s+/g,'-')}-${r.meta.fecha}.html`;
+  a.click();URL.revokeObjectURL(url);closeModal();
+}
+
+function modalDelete(){
+  if(!confirm('¿Eliminar esta evaluación del historial local? (No se elimina de Supabase)'))return;
+  deleteRecord(modalItemId);closeModal();
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════ */
+document.getElementById('f-fecha').valueAsDate=new Date();
+updateHeaderCounts();
+updateQueueBadge();
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal()});
+checkSupabaseConnection().then(()=>{
+  // Si hay pendientes y hay conexión, intentar enviarlos
+  if(getQueue().length>0&&sbConnected)flushQueue();
+});
+</script>
+</body>
+</html>
