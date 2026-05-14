@@ -522,6 +522,7 @@ body{
         </div>
         <p class="result-title" id="result-title"></p>
         <p class="result-subtitle" id="result-subtitle"></p>
+        <div id="factor-dominante-wrap" style="display:none;text-align:center;margin-top:8px"></div>
       </div>
       <div id="trigger-section" class="result-section" style="display:none">
         <p class="section-label">Disparadores activados</p>
@@ -994,6 +995,37 @@ function evaluate(){
   return{level:'none',triggersFired:[]};
 }
 
+function getFactorDominante(ans){
+  // Basilea II: Personas, Procesos, Tecnológico, Externo
+  // P1=procesos negocio, P2=datos sensibles(ext), P3=continuidad(proc), P4=tecnología, P5=proveedores(ext), P6=regulatorio(ext), P7=cambios procesos, P8=financiero/reputacional(ext)
+  const scores={personas:0,procesos:0,tecnologico:0,externo:0};
+  if(ans[0]==='si') scores.procesos+=2;         // P1: Procesos del negocio
+  if(ans[1]==='si') scores.externo+=2;          // P2: Datos sensibles/regulados → Externo
+  if(ans[2]==='si') scores.procesos+=2;         // P3: Continuidad operativa → Procesos
+  if(ans[3]==='si') scores.tecnologico+=3;      // P4: Elementos tecnológicos → Tecnológico (peso mayor)
+  if(ans[4]==='si') scores.externo+=2;          // P5: Proveedores/terceros → Externo
+  if(ans[5]==='si') scores.externo+=1;          // P6: Regulatorio → Externo
+  if(ans[6]==='si') scores.procesos+=2;         // P7: Cambios en controles → Procesos
+  if(ans[7]==='si') scores.externo+=1;          // P8: Riesgo financiero/reputacional → Externo
+  // NS suma medio punto
+  if(ans[0]==='ns') scores.procesos+=.5;
+  if(ans[1]==='ns') scores.externo+=.5;
+  if(ans[2]==='ns') scores.procesos+=.5;
+  if(ans[3]==='ns') scores.tecnologico+=1;
+  if(ans[4]==='ns') scores.externo+=.5;
+  if(ans[6]==='ns') scores.procesos+=.5;
+  const max=Math.max(...Object.values(scores));
+  if(max===0) return null;
+  const factor=Object.entries(scores).find(([,v])=>v===max)[0];
+  const labels={personas:'Personas',procesos:'Procesos',tecnologico:'Tecnológico',externo:'Externo'};
+  const icons={personas:'👤',procesos:'⚙️',tecnologico:'💻',externo:'🌐'};
+  const colors={personas:'rgba(139,92,246,0.15)','personas-border':'rgba(139,92,246,0.4)','personas-color':'#A78BFA',
+    procesos:'rgba(59,130,246,0.15)','procesos-border':'rgba(59,130,246,0.4)','procesos-color':'#60A5FA',
+    tecnologico:'rgba(0,194,212,0.15)','tecnologico-border':'rgba(0,194,212,0.4)','tecnologico-color':'var(--accent)',
+    externo:'rgba(245,158,11,0.15)','externo-border':'rgba(245,158,11,0.4)','externo-color':'var(--yellow)'};
+  return{factor,label:labels[factor],icon:icons[factor],bg:colors[factor],border:colors[factor+'-border'],color:colors[factor+'-color']};
+}
+
 function fmtDate(d){return d?new Date(d+'T00:00:00').toLocaleDateString('es-DO',{year:'numeric',month:'long',day:'numeric'}):''}
 
 function buildDocs(level, customAnswers){
@@ -1022,6 +1054,19 @@ function renderResult(level,triggersFired,docs,targetMeta,targetAnswers){
   const sem=document.getElementById('sem-circle'),icon=document.getElementById('sem-icon');
   const title=document.getElementById('result-title'),sub=document.getElementById('result-subtitle');
   ['trigger-section','docs-section','checklist-section'].forEach(id=>document.getElementById(id).style.display='none');
+  // Badge Factor Dominante Basilea II
+  const fd=getFactorDominante(ans2);
+  const fdEl=document.getElementById('factor-dominante-wrap');
+  if(fdEl){
+    if(fd){
+      fdEl.innerHTML=`<div style="display:inline-flex;align-items:center;gap:8px;background:${fd.bg};border:1px solid ${fd.border};border-radius:20px;padding:5px 14px">
+        <span style="font-size:13px">${fd.icon}</span>
+        <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:${fd.color}">Factor dominante (Basilea II):</span>
+        <span style="font-size:12px;font-weight:700;color:${fd.color}">${fd.label}</span>
+      </div>`;
+      fdEl.style.display='block';
+    } else { fdEl.style.display='none'; }
+  }
   if(level==='none'){
     sem.className='semaforo sem-green';
     icon.innerHTML=`<path d="M10 18l-6-6 2-2 4 4 8-8 2 2z" fill="white"/>`;
