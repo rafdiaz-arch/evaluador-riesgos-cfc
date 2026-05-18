@@ -1151,46 +1151,36 @@ async function generateDocAnalysis(){
   error.style.display='none';
 
   try{
-    // Convertir PDFs a base64
     const documents = await Promise.all(docFiles.map(async f=>({
       name: f.name,
       data: await fileToBase64(f)
     })));
 
-    // Construir contexto del cuestionario para el análisis con documentos
-    const badgeMap={si:'Sí',no:'No',ns:'No estoy seguro/a'};
-    const resumen=answers.map((a,i)=>`${i+1}. ${Q_SHORTS[i]}: ${badgeMap[a]}`).join('
-');
-    const nivelTexto={none:'No aplica evaluación formal',basic:'Revisión básica recomendada',formal:'Evaluación formal de riesgos requerida'}[lastLevel];
+    const badgeMap={si:'Si',no:'No',ns:'No estoy seguro/a'};
+    const resumen=answers.map((a,i)=>(i+1)+'. '+Q_SHORTS[i]+': '+badgeMap[a]).join('\n');
+    const nivelTexto={none:'No aplica evaluacion formal',basic:'Revision basica recomendada',formal:'Evaluacion formal de riesgos requerida'}[lastLevel];
     const fd=getFactorDominante(answers);
+    const factorLabel=fd?fd.label:'No determinado';
+    const trigsText=lastTriggers.length>0?'Disparadores activados: '+lastTriggers.map(id=>TRIGGER_LABELS[id]).join(', '):'Sin disparadores activados';
+    const descText=meta.descripcion?'Descripcion del proyecto: '+meta.descripcion:'';
 
-    const promptDoc=`Se adjuntan ${documents.length} documento(s) del proyecto "${meta.proyecto}" de ${meta.empresa}.
-
-CONTEXTO DEL CUESTIONARIO RISK BY DESIGN:
-Nivel determinado: ${nivelTexto}
-Factor dominante (Basilea II): ${fd?fd.label:'No determinado'}
-${lastTriggers.length>0?'Disparadores activados: '+lastTriggers.map(id=>TRIGGER_LABELS[id]).join(', '):'Sin disparadores activados'}
-
-Respuestas al cuestionario:
-${resumen}
-
-${meta.descripcion?'Descripción del proyecto: '+meta.descripcion:''}
-
-Analiza los documentos adjuntos cruzándolos con el contexto del cuestionario y genera un ANÁLISIS CON DOCUMENTOS que incluya:
-
-1. CONSISTENCIA DOCUMENTAL
-¿Los documentos son coherentes con las respuestas dadas en el cuestionario? Indica específicamente si hay contradicciones o confirmaciones relevantes.
-
-2. RIESGOS ADICIONALES IDENTIFICADOS
-¿Los documentos revelan riesgos que no fueron capturados por el cuestionario? Sé específico — menciona qué sección del documento lo revela.
-
-3. SUFICIENCIA DOCUMENTAL
-¿La documentación presentada es suficiente para iniciar el proceso formal de Risk by Design? ¿Qué falta si algo falta?
-
-4. RECOMENDACIONES BASADAS EN DOCUMENTOS
-Acciones específicas basadas en el contenido real de los documentos adjuntos.
-
-Tono ejecutivo. Conecta cada hallazgo con el proyecto "${meta.proyecto}" y la empresa ${meta.empresa}. No uses lenguaje genérico.`;
+    const promptDoc='Se adjuntan '+documents.length+' documento(s) del proyecto "'+meta.proyecto+'" de '+meta.empresa+'.'
+      +'\n\nCONTEXTO DEL CUESTIONARIO RISK BY DESIGN:'
+      +'\nNivel determinado: '+nivelTexto
+      +'\nFactor dominante (Basilea II): '+factorLabel
+      +'\n'+trigsText
+      +(descText?'\n'+descText:'')
+      +'\n\nRespuestas al cuestionario:\n'+resumen
+      +'\n\nAnaliza los documentos adjuntos cruzandolos con el contexto del cuestionario y genera un ANALISIS CON DOCUMENTOS que incluya:'
+      +'\n\n1. CONSISTENCIA DOCUMENTAL'
+      +'\nLos documentos son coherentes con las respuestas dadas en el cuestionario? Indica si hay contradicciones o confirmaciones relevantes.'
+      +'\n\n2. RIESGOS ADICIONALES IDENTIFICADOS'
+      +'\nLos documentos revelan riesgos que no fueron capturados por el cuestionario? Se especifico — menciona que seccion del documento lo revela.'
+      +'\n\n3. SUFICIENCIA DOCUMENTAL'
+      +'\nLa documentacion presentada es suficiente para iniciar el proceso formal de Risk by Design? Que falta si algo falta?'
+      +'\n\n4. RECOMENDACIONES BASADAS EN DOCUMENTOS'
+      +'\nAcciones especificas basadas en el contenido real de los documentos adjuntos.'
+      +'\n\nTono ejecutivo. Conecta cada hallazgo con el proyecto "'+meta.proyecto+'" y la empresa '+meta.empresa+'. No uses lenguaje generico.';
 
     const response = await fetch('https://claude-proxy-cfc.rafdiaz.workers.dev',{
       method:'POST',
@@ -1204,13 +1194,12 @@ Tono ejecutivo. Conecta cada hallazgo con el proyecto "${meta.proyecto}" y la em
     const data = await response.json();
     if(data.error) throw new Error(data.error);
 
-    const text = data.content?.[0]?.text||'';
-    if(!text) throw new Error('Respuesta vacía de Claude');
+    const text = data.content&&data.content[0]?data.content[0].text:'';
+    if(!text) throw new Error('Respuesta vacia de Claude');
 
     loading.style.display='none';
     result.style.display='block';
-    result.innerHTML = text.replace(/
-/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+    result.innerHTML=text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
     btn.textContent='Volver a analizar';
     btn.style.display='block';
 
