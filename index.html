@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evaluador de Riesgos — Grupo CFC</title>
+<title>RiskCheck CFC</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -404,8 +404,8 @@ body{
         <span style="color:white;font-size:13px;font-weight:700;letter-spacing:0.04em;font-family:system-ui,sans-serif">CFC</span>
       </div>
       <div>
-        <div class="brand-name">Grupo CFC</div>
-        <div class="brand-sub">Risk by Design — Evaluador v7</div>
+        <div class="brand-name">CFC</div>
+        <div class="brand-sub">RiskCheck CFC</div>
       </div>
     </div>
     <div class="header-nav">
@@ -438,8 +438,8 @@ body{
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div>
-            <p style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin:0 0 2px">Grupo CFC — Dirección de Riesgos</p>
-            <p style="font-size:18px;font-weight:700;color:var(--text-primary);margin:0">Risk by Design — Evaluador v7</p>
+            <p style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin:0 0 2px">CFC — Dirección de Riesgos</p>
+            <p style="font-size:18px;font-weight:700;color:var(--text-primary);margin:0">RiskCheck CFC</p>
           </div>
         </div>
 
@@ -479,7 +479,7 @@ body{
             </div>
             <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2)">
               <div style="width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
-              <div><span style="font-size:13px;font-weight:600;color:var(--red)">Evaluación formal</span> <span style="font-size:12px;color:var(--text-muted)">— Debe pasar por el proceso completo de Risk by Design.</span></div>
+              <div><span style="font-size:13px;font-weight:600;color:var(--red)">Evaluación formal</span> <span style="font-size:12px;color:var(--text-muted)">— Debe pasar por el proceso completo de RiskCheck CFC.</span></div>
             </div>
           </div>
         </div>
@@ -501,7 +501,7 @@ body{
           Iniciar nueva evaluación
         </button>
 
-        <p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px">Risk by Design v7.0 · Dirección de Riesgos y Controles · Grupo CFC</p>
+        <p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px">RiskCheck CFC · Dirección de Riesgos y Controles · CFC</p>
       </div>
     </div>
 
@@ -518,7 +518,7 @@ body{
           <label>Empresa</label>
           <select id="f-empresa">
             <option value="">Seleccionar empresa</option>
-            <option>Grupo CFC</option>
+            <option>CFC</option>
             <option>Affinity</option>
             <option>AFP Crecer RD</option>
             <option>AFP Crecer El Salvador</option>
@@ -606,7 +606,7 @@ body{
         <div class="trigger-list" id="trigger-list"></div>
       </div>
       <div id="docs-section" class="result-section" style="display:none">
-        <p class="section-label">Documentación requerida — Risk by Design</p>
+        <p class="section-label">Documentación requerida — RiskCheck CFC</p>
         <div class="doc-list" id="doc-list"></div>
       </div>
       <div id="checklist-section" class="result-section" style="display:none">
@@ -828,7 +828,7 @@ const QUESTIONS=[
   {id:5,trigger:true,text:"¿Interviene algún proveedor externo, consultor o servicio digital con acceso a información o sistemas de la empresa?",example:"<strong>Ejemplos:</strong> empresa de software, plataforma en la nube, outsourcing, firma consultora con acceso a datos o sistemas internos."},
   {id:6,trigger:false,text:"¿Este proyecto agrega MÁS DE UNA actividad o control dentro de un procedimiento ya existente?",example:"<strong>Ejemplos:</strong> agregar varios pasos de validación, incluir múltiples controles nuevos dentro de un procedimiento que ya existe. <strong>OJO:</strong> agregar solo una actividad no dispara evaluación formal por sí sola."},
   {id:7,trigger:true,text:"¿El proyecto cambia la forma en que se ejecuta el trabajo, quién aprueba qué, o elimina pasos de control existentes?",example:"<strong>Ejemplos:</strong> nuevo flujo de aprobación, eliminación de una revisión manual, cambio de responsable de un proceso o control crítico."},
-  {id:8,trigger:true,text:"¿Un error o mala ejecución de este proyecto podría generar pérdidas económicas, multas o daño reputacional para el Grupo CFC?",example:"<strong>Ejemplos:</strong> cobros incorrectos, sanciones regulatorias, noticias negativas, pérdida de clientes o reclamos legales."}
+  {id:8,trigger:true,text:"¿Un error o mala ejecución de este proyecto podría generar pérdidas económicas, multas o daño reputacional para el CFC?",example:"<strong>Ejemplos:</strong> cobros incorrectos, sanciones regulatorias, noticias negativas, pérdida de clientes o reclamos legales."}
 ];
 const TRIGGER_IDS=[2,3,5,7,8];
 const TRIGGER_LABELS={2:'P2: Información confidencial o regulada',3:'P3: Continuidad operativa',5:'P5: Proveedores y terceros',6:'P6: Múltiples actividades en proceso existente',7:'P7: Cambios en aprobaciones o controles',8:'P8: Riesgo financiero o reputacional'};
@@ -1254,7 +1254,7 @@ async function generateDocAnalysis(){
       +'\n\n2. RIESGOS ADICIONALES IDENTIFICADOS'
       +'\nLos documentos revelan riesgos que no fueron capturados por el cuestionario? Se especifico — menciona que seccion del documento lo revela.'
       +'\n\n3. SUFICIENCIA DOCUMENTAL'
-      +'\nLa documentacion presentada es suficiente para iniciar el proceso formal de Risk by Design? Que falta si algo falta?'
+      +'\nLa documentacion presentada es suficiente para iniciar el proceso formal de RiskCheck CFC? Que falta si algo falta?'
       +'\n\n4. RECOMENDACIONES BASADAS EN DOCUMENTOS'
       +'\nAcciones especificas basadas en el contenido real de los documentos adjuntos.'
       +'\n\nTono ejecutivo. Conecta cada hallazgo con el proyecto "'+meta.proyecto+'" y la empresa '+meta.empresa+'. No uses lenguaje generico.';
@@ -1333,7 +1333,7 @@ function renderResult(level,triggersFired,docs,targetMeta,targetAnswers){
     sem.className='semaforo sem-green';
     icon.innerHTML=`<path d="M10 18l-6-6 2-2 4 4 8-8 2 2z" fill="white"/>`;
     title.textContent='No aplica evaluación formal';title.style.color='var(--green)';
-    sub.textContent='El proyecto no presenta factores de riesgo identificados. Puede proceder sin proceso adicional de Risk by Design.';
+    sub.textContent='El proyecto no presenta factores de riesgo identificados. Puede proceder sin proceso adicional de RiskCheck CFC.';
   }
   if(level==='basic'){
     sem.className='semaforo sem-yellow';
@@ -1353,7 +1353,7 @@ function renderResult(level,triggersFired,docs,targetMeta,targetAnswers){
     sem.className='semaforo sem-red';
     icon.innerHTML=`<path d="M18 10v8M18 22h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`;
     title.textContent='Evaluación formal de riesgos requerida';title.style.color='var(--red)';
-    sub.textContent='Este proyecto debe pasar por el proceso completo de Risk by Design. Contacta al área de Riesgos y Controles con la documentación requerida.';
+    sub.textContent='Este proyecto debe pasar por el proceso completo de RiskCheck CFC. Contacta al área de Riesgos y Controles con la documentación requerida.';
     if(triggersFired.length>0){
       document.getElementById('trigger-section').style.display='block';
       document.getElementById('trigger-list').innerHTML=triggersFired.map(id=>`<div class="trigger-chip"><span class="trigger-dot"></span>${TRIGGER_LABELS[id]}</div>`).join('');
@@ -1431,7 +1431,7 @@ async function generateAIAnalysis(){
     ? `El proyecto requiere REVISIÓN BÁSICA. Genera un análisis que explique qué aspectos revisar, por qué no llegó a evaluación formal y qué validaciones rápidas debe hacer el responsable.`
     : `El proyecto requiere EVALUACIÓN FORMAL COMPLETA. Genera un análisis ejecutivo detallado con las 4 secciones indicadas.`;
 
-  const prompt=`Eres un experto en gestión de riesgos corporativos para el Grupo CFC, un holding financiero dominicano. Las empresas del grupo son:
+  const prompt=`Eres un experto en gestión de riesgos corporativos para el CFC, un holding financiero dominicano. Las empresas del grupo son:
 
 - **Seguros Crecer**: Aseguradora dominicana del grupo.
 - **AFP Crecer RD**: Administradora de Fondos de Pensiones (AFP) en República Dominicana, supervisada por la SIPEN.
@@ -1439,9 +1439,9 @@ async function generateAIAnalysis(){
 - **Affinity**: TPA (Third Party Administrator) especializado en programas de afinidad, seguros masivos e inclusivos. Opera en Banca Seguros, Micro Seguros, Mercadeo Directo y Masivo de Seguros.
 - **CrecerLAB**: Núcleo de innovación y emprendimiento del grupo. Concibe, experimenta y lanza soluciones pioneras que catalizan la transformación empresarial y generan valor agregado.
 - **Auxilia**: Empresa dominicana especializada en servicios integrales de asistencia con enfoque en personalización y automatización. Servicios: Asistencia Vial, Asistencia Total Hogar, Movilidad, Concierge, Asistencia en Viajes, Garantía Extendida, Adulto Mayor y Servicios Especializados.
-- **Grupo CFC**: Holding que agrupa todas las empresas anteriores.
+- **CFC**: Holding que agrupa todas las empresas anteriores.
 
-El marco normativo aplicable incluye: Ley 172-13 (Protección de Datos Personales RD), Art. 44 Constitución RD, normativas de la SIPEN (para AFPs), normativas de la SIS (para seguros), y políticas internas de Risk by Design del Grupo CFC.
+El marco normativo aplicable incluye: Ley 172-13 (Protección de Datos Personales RD), Art. 44 Constitución RD, normativas de la SIPEN (para AFPs), normativas de la SIS (para seguros), y políticas internas de RiskCheck CFC del CFC.
 
 Se completó una evaluación de riesgos con los siguientes datos:
 
@@ -1466,7 +1466,7 @@ Describe en 2-3 oraciones el perfil de riesgo específico de este proyecto basá
 Para cada disparador activado, explica por qué es relevante para este proyecto específico y qué riesgo concreto representa para ${meta.empresa}.
 
 **3. RECOMENDACIONES PARA EL ÁREA DE RIESGOS**
-Lista 3-5 recomendaciones concretas y accionables para el proceso de evaluación formal de Risk by Design.
+Lista 3-5 recomendaciones concretas y accionables para el proceso de evaluación formal de RiskCheck CFC.
 
 **4. NIVEL DE URGENCIA**
 Determina si la urgencia es ALTA, MEDIA o BAJA y justifica en 1-2 oraciones basándote en los disparadores y el tipo de proyecto.
@@ -1915,10 +1915,10 @@ function buildEmailBody(m,ans,triggers,docs,level){
 
   // Apertura segun nivel
   const determinacion=level==='none'
-    ?`DETERMINACION: SU PROYECTO NO REQUIERE EVALUACION FORMAL\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto no requiere una evaluacion formal de riesgos en este momento.\nPuede proceder sin iniciar un proceso formal de Risk by Design.`
+    ?`DETERMINACION: SU PROYECTO NO REQUIERE EVALUACION FORMAL\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto no requiere una evaluacion formal de riesgos en este momento.\nPuede proceder sin iniciar un proceso formal de RiskCheck CFC.`
     :level==='basic'
     ?`DETERMINACION: SU PROYECTO REQUIERE UNA REVISION BASICA\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto requiere una Revision Basica de Riesgos antes de proceder.\nSe recomienda completar un checklist rapido con el equipo de riesgos.`
-    :`DETERMINACION: SU PROYECTO REQUIERE EVALUACION FORMAL DE RIESGOS\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto REQUIERE una Evaluacion Formal de Riesgos antes de proceder.\nSe identificaron ${triggers.length} factor(es) que activan este nivel de\nrevision. La Direccion de Riesgos debera ser notificada y se debe\niniciar el proceso formal de Risk by Design.`;
+    :`DETERMINACION: SU PROYECTO REQUIERE EVALUACION FORMAL DE RIESGOS\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto REQUIERE una Evaluacion Formal de Riesgos antes de proceder.\nSe identificaron ${triggers.length} factor(es) que activan este nivel de\nrevision. La Direccion de Riesgos debera ser notificada y se debe\niniciar el proceso formal de RiskCheck CFC.`;
 
   // Factor dominante
   const fd=getFactorDominante(ans);
@@ -1967,7 +1967,7 @@ Generado el: ${now}
 
 Estimado/a ${m.resp},
 
-Le informamos que el formulario de filtro Risk by Design para el
+Le informamos que el formulario de filtro RiskCheck CFC para el
 proyecto "${m.proyecto}" ha sido completado.
 
 Con base en las respuestas registradas, el sistema ha determinado
@@ -2001,19 +2001,19 @@ ${resumen}
 
 
 Para consultas sobre este resultado o el proceso de evaluacion,
-contacte a la Direccion de Riesgos y Controles del Grupo CFC.
+contacte a la Direccion de Riesgos y Controles del CFC.
 
 Atentamente,
-Sistema Risk by Design
-Direccion de Riesgos y Controles -- Grupo CFC
+Sistema RiskCheck CFC
+Direccion de Riesgos y Controles -- CFC
 
 Mensaje automatico -- Confidencial -- Uso Interno
-Grupo CFC -- Todos los derechos reservados`;
+CFC -- Todos los derechos reservados`;
 }
 function sendEmail(){
   const body=buildEmailBody(meta,answers,lastTriggers,lastDocs,lastLevel);
   const subjectPrefix=lastLevel==='none'?'Sin evaluacion requerida':lastLevel==='basic'?'Revision basica requerida':'Evaluacion formal requerida';
-  const subject=encodeURIComponent(`${subjectPrefix} -- ${meta.proyecto} -- Risk by Design CFC`);
+  const subject=encodeURIComponent(`${subjectPrefix} -- ${meta.proyecto} -- RiskCheck CFC`);
   window.location.href=`mailto:${meta.correoResp}?cc=${encodeURIComponent(meta.correoRiesgos)}&subject=${subject}&body=${encodeURIComponent(body)}`;
 }
 
@@ -2026,9 +2026,9 @@ function buildReportHTML(m,ans,triggers,docs,level){
   const semColor=level==='none'?'#1D9E75':level==='basic'?'#F59E0B':'#DC3545';
   const semIcon=level==='none'?'✓':level==='basic'?'!':'✕';
   const triggersHTML=triggers.length>0?`<div class="section"><div class="section-title">⚡ Disparadores Activados</div><div style="display:flex;flex-wrap:wrap;gap:8px">${triggers.map(id=>`<span style="background:#FEF3C7;border:1px solid #FCD34D;color:#92400E;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600">${TRIGGER_LABELS[id]}</span>`).join('')}</div></div>`:'';
-  const docsHTML=docs.length>0?`<div class="section"><div class="section-title">Documentación Requerida — Risk by Design</div>${docs.map(d=>`<div style="display:flex;gap:10px;padding:10px 14px;background:#FDECEA;border:1px solid #F5C6CB;border-radius:8px;margin-bottom:6px"><span style="color:#DC3545;font-weight:700;flex-shrink:0">■</span><div><div style="font-weight:600;font-size:13px">${d.name}</div><div style="font-size:12px;color:#6B6860;margin-top:2px">${d.cond}</div></div></div>`).join('')}</div>`:'';
+  const docsHTML=docs.length>0?`<div class="section"><div class="section-title">Documentación Requerida — RiskCheck CFC</div>${docs.map(d=>`<div style="display:flex;gap:10px;padding:10px 14px;background:#FDECEA;border:1px solid #F5C6CB;border-radius:8px;margin-bottom:6px"><span style="color:#DC3545;font-weight:700;flex-shrink:0">■</span><div><div style="font-weight:600;font-size:13px">${d.name}</div><div style="font-size:12px;color:#6B6860;margin-top:2px">${d.cond}</div></div></div>`).join('')}</div>`:'';
   const summaryRows=ans.map((a,i)=>`<tr><td style="padding:9px 12px;font-size:13px;border-bottom:1px solid #E4E2DC">${TRIGGER_IDS.includes(i+1)?'⚡ ':''}${Q_SHORTS[i]}</td><td style="padding:9px 12px;text-align:center;border-bottom:1px solid #E4E2DC"><span style="background:${badgeBg[a]};color:${badgeColor[a]};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">${badgeMap[a]}</span></td></tr>`).join('');
-  return`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Evaluación de Riesgos — ${m.proyecto}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#fff;color:#1A1917;padding:32px;max-width:800px;margin:0 auto}.header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1B3A5C;padding-bottom:16px;margin-bottom:24px}.logo-sq{width:42px;height:42px;background:#1B3A5C;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}.brand{font-size:18px;font-weight:700;color:#1B3A5C}.meta-box{background:#F8F7F4;border:1px solid #E4E2DC;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.meta-row{font-size:13px}.meta-k{font-weight:600;color:#6B6860;margin-right:6px}.result-box{border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;border:2px solid ${semColor};background:${semColor}18}.sem-circle{width:64px;height:64px;border-radius:50%;background:${semColor};display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700;margin:0 auto 12px}.result-level{font-size:20px;font-weight:700;color:${semColor}}.section{margin-bottom:20px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#A09D97;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #E4E2DC}table{width:100%;border-collapse:collapse;border:1px solid #E4E2DC;border-radius:8px;overflow:hidden}th{background:#1B3A5C;color:#fff;font-size:12px;font-weight:600;padding:10px 12px;text-align:left}tr:last-child td{border-bottom:none}.footer{margin-top:32px;padding-top:16px;border-top:1px solid #E4E2DC;display:flex;justify-content:space-between;font-size:11px;color:#A09D97}@media print{body{padding:16px}@page{size:A4;margin:1.5cm}}</style></head><body><div class="header"><div style="display:flex;align-items:center;gap:12px"><div class="logo-sq">G</div><div><div class="brand">Grupo CFC</div><div style="font-size:12px;color:#A09D97">Evaluador de Riesgos — Risk by Design</div></div></div><div style="font-size:12px;color:#6B6860;text-align:right">Formulario de Evaluación de Riesgos<br><strong>${now}</strong></div></div><div class="meta-box"><div class="meta-row"><span class="meta-k">Proyecto:</span>${m.proyecto}</div><div class="meta-row"><span class="meta-k">Empresa:</span>${m.empresa}</div><div class="meta-row"><span class="meta-k">Responsable:</span>${m.resp}</div><div class="meta-row"><span class="meta-k">Fecha:</span>${fecha}</div></div><div class="result-box"><div class="sem-circle">${semIcon}</div><div class="result-level">${nivel}</div></div>${triggersHTML}${docsHTML}<div class="section"><div class="section-title">Resumen de Respuestas</div><table><tr><th>Área de Evaluación</th><th style="width:160px;text-align:center">Respuesta</th></tr>${summaryRows}</table></div><div class="footer"><span>Documento generado automáticamente — Grupo CFC — Confidencial</span><span>Risk by Design · ${now}</span></div></body></html>`;
+  return`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Evaluación de Riesgos — ${m.proyecto}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:#fff;color:#1A1917;padding:32px;max-width:800px;margin:0 auto}.header{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1B3A5C;padding-bottom:16px;margin-bottom:24px}.logo-sq{width:42px;height:42px;background:#1B3A5C;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px}.brand{font-size:18px;font-weight:700;color:#1B3A5C}.meta-box{background:#F8F7F4;border:1px solid #E4E2DC;border-radius:10px;padding:16px 20px;margin-bottom:20px;display:grid;grid-template-columns:1fr 1fr;gap:8px}.meta-row{font-size:13px}.meta-k{font-weight:600;color:#6B6860;margin-right:6px}.result-box{border-radius:12px;padding:20px;margin-bottom:20px;text-align:center;border:2px solid ${semColor};background:${semColor}18}.sem-circle{width:64px;height:64px;border-radius:50%;background:${semColor};display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:700;margin:0 auto 12px}.result-level{font-size:20px;font-weight:700;color:${semColor}}.section{margin-bottom:20px}.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#A09D97;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #E4E2DC}table{width:100%;border-collapse:collapse;border:1px solid #E4E2DC;border-radius:8px;overflow:hidden}th{background:#1B3A5C;color:#fff;font-size:12px;font-weight:600;padding:10px 12px;text-align:left}tr:last-child td{border-bottom:none}.footer{margin-top:32px;padding-top:16px;border-top:1px solid #E4E2DC;display:flex;justify-content:space-between;font-size:11px;color:#A09D97}@media print{body{padding:16px}@page{size:A4;margin:1.5cm}}</style></head><body><div class="header"><div style="display:flex;align-items:center;gap:12px"><div class="logo-sq">G</div><div><div class="brand">CFC</div><div style="font-size:12px;color:#A09D97">RiskCheck CFC</div></div></div><div style="font-size:12px;color:#6B6860;text-align:right">Formulario de Evaluación de Riesgos<br><strong>${now}</strong></div></div><div class="meta-box"><div class="meta-row"><span class="meta-k">Proyecto:</span>${m.proyecto}</div><div class="meta-row"><span class="meta-k">Empresa:</span>${m.empresa}</div><div class="meta-row"><span class="meta-k">Responsable:</span>${m.resp}</div><div class="meta-row"><span class="meta-k">Fecha:</span>${fecha}</div></div><div class="result-box"><div class="sem-circle">${semIcon}</div><div class="result-level">${nivel}</div></div>${triggersHTML}${docsHTML}<div class="section"><div class="section-title">Resumen de Respuestas</div><table><tr><th>Área de Evaluación</th><th style="width:160px;text-align:center">Respuesta</th></tr>${summaryRows}</table></div><div class="footer"><span>Documento generado automáticamente — CFC — Confidencial</span><span>RiskCheck CFC · ${now}</span></div></body></html>`;
 }
 
 function downloadHTML(){
@@ -2086,7 +2086,7 @@ function modalEmail(){
   const body=buildEmailBody(r.meta,r.answers,r.triggers,docs,r.level);
   const lvl=r.level||'formal';
   const subjectPrefix2=lvl==='none'?'Sin evaluacion requerida':lvl==='basic'?'Revision basica requerida':'Evaluacion formal requerida';
-  const subject=encodeURIComponent(`${subjectPrefix2} -- ${r.meta.proyecto} -- Risk by Design CFC`);
+  const subject=encodeURIComponent(`${subjectPrefix2} -- ${r.meta.proyecto} -- RiskCheck CFC`);
   window.location.href=`mailto:${r.meta.correoResp}?cc=${encodeURIComponent(r.meta.correoRiesgos)}&subject=${subject}&body=${encodeURIComponent(body)}`;
 }
 
