@@ -428,8 +428,85 @@ body{
 
   <div class="card">
 
+    <!-- PANTALLA 0: INSTRUCCIONES -->
+    <div class="screen active" id="screen0">
+      <div style="max-width:600px;margin:0 auto">
+
+        <!-- Header RBD -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.75rem">
+          <div style="width:48px;height:48px;background:linear-gradient(135deg,#1B3A5C,#2D6A9F);border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <p style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin:0 0 2px">Grupo CFC — Dirección de Riesgos</p>
+            <p style="font-size:18px;font-weight:700;color:var(--text-primary);margin:0">Risk by Design — Evaluador v7</p>
+          </div>
+        </div>
+
+        <!-- Objetivo -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);padding:14px 18px;margin-bottom:1.25rem">
+          <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin:0 0 6px">Objetivo del formulario</p>
+          <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;margin:0">Determinar si un proyecto o iniciativa aplica para una evaluación formal de riesgos, y gestionar el proceso hasta la comunicación de conclusiones.</p>
+        </div>
+
+        <!-- Criterios de aplicabilidad -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:1.25rem">
+          <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-secondary);margin:0 0 12px">Criterios de aplicabilidad</p>
+          <p style="font-size:13px;color:var(--text-muted);margin:0 0 10px">Este formulario aplica para cualquier proyecto o iniciativa que involucre al menos uno de los siguientes elementos:</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Tratamiento de datos personales o sensibles</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Uso de tecnologías nuevas o innovadoras</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Participación de proveedores o terceros externos</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Cambios en procesos, sistemas o modelos de negocio</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Impacto en la continuidad operativa del negocio</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Requisitos legales o regulatorios específicos</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Riesgo financiero o reputacional significativo</span></div>
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)"><span style="color:var(--accent);font-size:14px;margin-top:1px;flex-shrink:0">⚡</span><span style="font-size:12px;color:var(--text-secondary);line-height:1.45">Integración con sistemas críticos del grupo</span></div>
+          </div>
+        </div>
+
+        <!-- Los 3 resultados posibles -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:1.25rem">
+          <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-secondary);margin:0 0 12px">Resultados posibles</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2)">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+              <div><span style="font-size:13px;font-weight:600;color:var(--green)">No aplica</span> <span style="font-size:12px;color:var(--text-muted)">— El proyecto no requiere evaluación formal. Puede proceder.</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.2)">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--yellow);flex-shrink:0"></div>
+              <div><span style="font-size:13px;font-weight:600;color:var(--yellow)">Revisión básica</span> <span style="font-size:12px;color:var(--text-muted)">— Requiere verificación rápida con el equipo de riesgos.</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-sm);background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2)">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--red);flex-shrink:0"></div>
+              <div><span style="font-size:13px;font-weight:600;color:var(--red)">Evaluación formal</span> <span style="font-size:12px;color:var(--text-muted)">— Debe pasar por el proceso completo de Risk by Design.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Guía de uso -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:1.75rem">
+          <p style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text-secondary);margin:0 0 12px">Cómo completar el formulario</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:flex-start;gap:10px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#1B3A5C,#2D6A9F);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px">1</div><div><span style="font-size:13px;font-weight:600;color:var(--text-primary)">Datos del proyecto</span><span style="font-size:12px;color:var(--text-muted)"> — Completa el nombre, empresa, responsable y una descripción breve del proyecto.</span></div></div>
+            <div style="display:flex;align-items:flex-start;gap:10px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#1B3A5C,#2D6A9F);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px">2</div><div><span style="font-size:13px;font-weight:600;color:var(--text-primary)">Cuestionario de 8 preguntas</span><span style="font-size:12px;color:var(--text-muted)"> — Responde Sí / No / No estoy seguro para cada pregunta de aplicabilidad.</span></div></div>
+            <div style="display:flex;align-items:flex-start;gap:10px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#1B3A5C,#2D6A9F);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px">3</div><div><span style="font-size:13px;font-weight:600;color:var(--text-primary)">Resultado automático</span><span style="font-size:12px;color:var(--text-muted)"> — El sistema determina el nivel de revisión requerido y activa el análisis IA.</span></div></div>
+            <div style="display:flex;align-items:flex-start;gap:10px"><div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#1B3A5C,#2D6A9F);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;flex-shrink:0;margin-top:1px">4</div><div><span style="font-size:13px;font-weight:600;color:var(--text-primary)">Correo al equipo</span><span style="font-size:12px;color:var(--text-muted)"> — Se genera un correo automático al responsable y al encargado de riesgos.</span></div></div>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <button class="btn-primary" onclick="goScreen('screen1')" style="width:100%">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          Iniciar nueva evaluación
+        </button>
+
+        <p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px">Risk by Design v7.0 · Dirección de Riesgos y Controles · Grupo CFC</p>
+      </div>
+    </div>
+
     <!-- PANTALLA 1: DATOS -->
-    <div class="screen active" id="screen1">
+    <div class="screen" id="screen1">
       <p class="screen-title">Nueva evaluación</p>
       <p class="screen-desc">Completa los datos del proyecto antes de iniciar el cuestionario de riesgos.</p>
       <div class="form-grid">
@@ -949,7 +1026,7 @@ function goScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  const map={'screen1':'nav-nueva','screen4':'nav-hist','screen5':'nav-stats'};
+  const map={'screen0':'nav-nueva','screen1':'nav-nueva','screen4':'nav-hist','screen5':'nav-stats'};
   if(map[id])document.getElementById(map[id]).classList.add('active');
   if(id==='screen4')renderHistory();
   if(id==='screen5')renderStats();
@@ -1970,7 +2047,7 @@ function resetAll(){
   });
   document.getElementById('f-empresa').value='';
   document.getElementById('error-s1').style.display='none';
-  goScreen('screen1');
+  goScreen('screen0');
 }
 
 /* ══════════════════════════════════════════════
