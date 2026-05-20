@@ -802,7 +802,7 @@ body{
     <div id="modal-body"></div>
     <div class="modal-actions">
       <button class="btn-email" style="flex:1" onclick="modalEmail()">Reenviar por correo</button>
-      <button class="btn-outline" style="flex:1" onclick="modalDownload()">Descargar HTML</button>
+      <button class="btn-outline" style="flex:1" onclick="modalDownload()">Descargar PDF</button>
       <button class="btn-outline" style="flex:1;color:var(--red)" onclick="modalDelete()">Eliminar local</button>
     </div>
   </div>
@@ -2034,11 +2034,25 @@ function buildReportHTML(m,ans,triggers,docs,level){
 
 function downloadHTML(){
   const html=buildReportHTML(meta,answers,lastTriggers,lastDocs,lastLevel);
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`Evaluacion-Riesgos-${meta.proyecto.replace(/\s+/g,'-')}-${meta.fecha}.html`;
-  a.click();URL.revokeObjectURL(url);
+  printToPDF(html, `Evaluacion-RiskCheck-${meta.proyecto.replace(/\s+/g,'-')}-${meta.fecha}`);
+}
+
+function printToPDF(html, filename){
+  // Inyectar título del documento para que el browser lo use como nombre del PDF
+  const htmlWithTitle = html.replace('<title>', `<title>${filename} — `);
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(htmlWithTitle);
+  iframe.contentDocument.close();
+  iframe.onload = function(){
+    setTimeout(()=>{
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      setTimeout(()=>document.body.removeChild(iframe), 2000);
+    }, 400);
+  };
 }
 
 function resetAll(){
@@ -2095,11 +2109,8 @@ function modalDownload(){
   const h=getHistory();const r=h.find(x=>x.id===modalItemId);if(!r)return;
   const docs=buildDocs(r.level);
   const html=buildReportHTML(r.meta,r.answers,r.triggers,docs,r.level);
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`Evaluacion-${r.meta.proyecto.replace(/\s+/g,'-')}-${r.meta.fecha}.html`;
-  a.click();URL.revokeObjectURL(url);closeModal();
+  printToPDF(html, `Evaluacion-RiskCheck-${r.meta.proyecto.replace(/\s+/g,'-')}-${r.meta.fecha}`);
+  closeModal();
 }
 
 function modalDelete(){
