@@ -1101,22 +1101,25 @@ function prevQ(){if(currentQ>0){currentQ--;renderQuestion()}}
    EVALUACIÓN Y RESULTADO
    ══════════════════════════════════════════════ */
 function evaluate(){
-  const siCount=answers.filter(a=>a==='si').length;
-  const hasNS=answers.some(a=>a==='ns');
-  const triggersFired=TRIGGER_IDS.filter(id=>answers[id-1]==='si');
-  const p1si=answers[0]==='si';
-  const p6si=answers[5]==='si';
-  const p6p1combo=p1si&&p6si;
-
-  if(answers.every(a=>a==='no'))return{level:'none',triggersFired:[]};
-  if(triggersFired.length>0||siCount>=2||p6p1combo){
-    const extraTriggers=p6p1combo&&!triggersFired.includes(6)
-      ?[...triggersFired,6]
-      :triggersFired;
-    return{level:'formal',triggersFired:extraTriggers};
+  const siCount = answers.filter(a => a === 'si').length;
+  const hasNS   = answers.some((a, i) => a === 'ns' && TRIGGER_IDS.includes(i + 1));
+  const p2 = answers[1] === 'si';
+  const p3 = answers[2] === 'si';
+  const p5 = answers[4] === 'si';
+  const p7 = answers[6] === 'si';
+  const p8 = answers[7] === 'si';
+  if(p2 || (p3 && p5) || (p7 && p8) || siCount >= 4){
+    const triggersFired = [];
+    if(p2) triggersFired.push(2);
+    if(p3 && p5){ if(!triggersFired.includes(3)) triggersFired.push(3); if(!triggersFired.includes(5)) triggersFired.push(5); }
+    if(p7 && p8){ if(!triggersFired.includes(7)) triggersFired.push(7); if(!triggersFired.includes(8)) triggersFired.push(8); }
+    if(siCount >= 4){ [2,3,5,7,8].forEach(id=>{ if(answers[id-1]==='si'&&!triggersFired.includes(id)) triggersFired.push(id); }); }
+    return { level: 'formal', triggersFired };
   }
-  if(hasNS||siCount===1)return{level:'basic',triggersFired:[]};
-  return{level:'none',triggersFired:[]};
+  if(p3 || p5 || p7 || p8 || (siCount >= 2 && siCount < 4) || hasNS){
+    return { level: 'basic', triggersFired: [] };
+  }
+  return { level: 'none', triggersFired: [] };
 }
 
 function getFactorDominante(ans){
