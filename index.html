@@ -508,6 +508,10 @@ body{
 
     <!-- PANTALLA 1: DATOS -->
     <div class="screen" id="screen1">
+      <button onclick="goScreen('screen0')" style="background:none;border:none;color:var(--text-muted);font-size:13px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:1rem;padding:0;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Volver al inicio
+      </button>
       <p class="screen-title">Nueva evaluación</p>
       <p class="screen-desc">Completa los datos del proyecto antes de iniciar el cuestionario de riesgos.</p>
       <div class="form-grid">
@@ -556,10 +560,6 @@ body{
           <p class="err-msg">Por favor completa todos los campos antes de continuar.</p>
         </div>
       </div>
-      <button onclick="goScreen('screen0')" style="background:none;border:none;color:var(--text-muted);font-size:13px;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:.75rem;padding:0;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-muted)'">
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  Volver al inicio
-</button>
       <button class="btn-primary" onclick="startQuiz()">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v14M1 8h14" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
         Iniciar evaluación
@@ -839,7 +839,7 @@ const TRIGGER_IDS=[2,3,5,7,8];
 const TRIGGER_LABELS={2:'P2: Información confidencial o regulada',3:'P3: Continuidad operativa',5:'P5: Proveedores y terceros',6:'P6: Múltiples actividades en proceso existente',7:'P7: Cambios en aprobaciones o controles',8:'P8: Riesgo financiero o reputacional'};
 const Q_SHORTS=['Procesos del negocio','Información confidencial o regulada','Continuidad operativa','Elementos tecnológicos','Proveedores y terceros','Múltiples actividades en procedimiento','Cambios en aprobaciones o controles','Riesgo financiero o reputacional'];
 const HIST_KEY='cfc_rbd_history_v6';
-const FORM_VERSION='v7.0';
+const FORM_VERSION='v8.0';
 
 let currentQ=0,answers=new Array(8).fill(null),meta={};
 let lastLevel='',lastTriggers=[],lastDocs=[];
@@ -1077,7 +1077,7 @@ function renderQuestion(){
   document.getElementById('prog-fraction').textContent=n+' / 8';
   document.getElementById('prog-bar').style.width=(n/8*100)+'%';
   document.getElementById('q-badge-wrap').innerHTML=q.trigger
-    ?`<div class="q-badge trigger"><span class="trigger-dot"></span>Pregunta disparadora — activa evaluación formal automáticamente</div>`
+    ?`<div class="q-badge trigger"><span class="trigger-dot"></span>Pregunta disparadora — puede activar evaluación formal</div>`
     :`<div class="q-badge">Pregunta ${n} de 8</div>`;
   document.getElementById('q-text').textContent=q.text;
   document.getElementById('q-example').innerHTML=q.example;
@@ -1092,7 +1092,14 @@ function renderQuestion(){
     <button class="ans-btn ${cur==='ns'?'selected-ns':''}" onclick="selectAnswer('ns')">
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>No estoy seguro/a
     </button>`;
-  document.getElementById('btn-back').style.visibility=currentQ===0?'hidden':'visible';
+  const btnBack = document.getElementById('btn-back');
+  if(currentQ === 0){
+    btnBack.style.visibility = 'visible';
+    btnBack.onclick = () => goScreen('screen1');
+  } else {
+    btnBack.style.visibility = 'visible';
+    btnBack.onclick = prevQ;
+  }
   document.getElementById('btn-next').disabled=answers[currentQ]===null;
   document.getElementById('next-label').textContent=currentQ===7?'Ver resultado':'Siguiente';
 }
