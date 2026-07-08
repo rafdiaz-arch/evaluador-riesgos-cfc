@@ -842,7 +842,7 @@ const HIST_KEY='cfc_rbd_history_v6';
 const FORM_VERSION='v8.0';
 
 let currentQ=0,answers=new Array(8).fill(null),meta={};
-let lastLevel='',lastTriggers=[],lastDocs=[];
+let lastLevel='',lastTriggers=[],lastDocs=[],lastSeverity=null;
 let currentFilter='all',modalItemId=null;
 let sbConnected=false;
 let syncStats={lastSync:null,todayCount:0};
@@ -1125,12 +1125,16 @@ function evaluate(){
     if(p3 && p5){ if(!triggersFired.includes(3)) triggersFired.push(3); if(!triggersFired.includes(5)) triggersFired.push(5); }
     if(p7 && p8){ if(!triggersFired.includes(7)) triggersFired.push(7); if(!triggersFired.includes(8)) triggersFired.push(8); }
     if(siCount >= 4){ [2,3,5,7,8].forEach(id=>{ if(answers[id-1]==='si'&&!triggersFired.includes(id)) triggersFired.push(id); }); }
-    return { level: 'formal', triggersFired };
+
+    // SEVERIDAD dentro de Formal
+    const severity = (p2 || (p3 && p5) || triggersFired.length >= 3) ? 'completa' : 'express';
+
+    return { level: 'formal', triggersFired, severity };
   }
   if(p3 || p5 || p7 || p8 || (siCount >= 2 && siCount < 4) || hasNS){
-    return { level: 'basic', triggersFired: [] };
+    return { level: 'basic', triggersFired: [], severity: null };
   }
-  return { level: 'none', triggersFired: [] };
+  return { level: 'none', triggersFired: [], severity: null };
 }
 
 function getFactorDominante(ans){
@@ -1305,10 +1309,17 @@ async function generateDocAnalysis(){
 
 function fmtDate(d){return d?new Date(d+'T00:00:00').toLocaleDateString('es-DO',{year:'numeric',month:'long',day:'numeric'}):''}
 
-function buildDocs(level, customAnswers){
+function buildDocs(level, customAnswers, severity){
   if(level!=='formal')return[];
   const ans=customAnswers||answers;
+  const sev=severity||lastSeverity;
   const ep=ans[1]==='si'||ans[3]==='si'||ans[6]==='si';
+  if(sev==='express'){
+    return[
+      {name:'Propuesta del proyecto',cond:'Siempre requerida'},
+      {name:'Flujo del proceso deseado (TO-BE)',cond:'Siempre requerida'}
+    ];
+  }
   return[
     {name:'Propuesta del proyecto',cond:'Siempre requerida'},
     ep?{name:'Flujo del proceso actual (AS-IS)',cond:'Requerida: proceso existente detectado'}:null,
@@ -1317,7 +1328,7 @@ function buildDocs(level, customAnswers){
   ].filter(Boolean);
 }
 
-function renderResult(level,triggersFired,docs,targetMeta,targetAnswers){
+function renderResult(level,triggersFired,docs,targetMeta,targetAnswers,severity){
   const meta2=targetMeta||meta;
   const ans2=targetAnswers||answers;
   document.getElementById('result-meta').innerHTML=`
@@ -1367,8 +1378,14 @@ function renderResult(level,triggersFired,docs,targetMeta,targetAnswers){
   if(level==='formal'){
     sem.className='semaforo sem-red';
     icon.innerHTML=`<path d="M18 10v8M18 22h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/>`;
-    title.textContent='Evaluación formal de riesgos requerida';title.style.color='var(--red)';
-    sub.textContent='Este proyecto debe pasar por el proceso completo de RiskCheck CFC. Contacta al área de Riesgos y Controles con la documentación requerida.';
+    const sev=severity||lastSeverity;
+    if(sev==='express'){
+      title.textContent='Evaluación formal — vía Express';title.style.color='var(--red)';
+      sub.textContent='Este proyecto requiere evaluación formal, pero puede resolverse en una sesión corta con Riesgos y Controles. Documentación reducida.';
+    } else {
+      title.textContent='Evaluación formal de riesgos requerida';title.style.color='var(--red)';
+      sub.textContent='Este proyecto debe pasar por el proceso completo de RiskCheck CFC. Contacta al área de Riesgos y Controles con la documentación requerida.';
+    }
     if(triggersFired.length>0){
       document.getElementById('trigger-section').style.display='block';
       document.getElementById('trigger-list').innerHTML=triggersFired.map(id=>`<div class="trigger-chip"><span class="trigger-dot"></span>${TRIGGER_LABELS[id]}</div>`).join('');
@@ -1388,9 +1405,9 @@ function renderResult(level,triggersFired,docs,targetMeta,targetAnswers){
 }
 
 function showResult(){
-  const{level,triggersFired}=evaluate();
-  lastLevel=level;lastTriggers=triggersFired;lastDocs=buildDocs(level);
-  renderResult(level,triggersFired,lastDocs);
+  const{level,triggersFired,severity}=evaluate();
+  lastLevel=level;lastTriggers=triggersFired;lastSeverity=severity;lastDocs=buildDocs(level,null,severity);
+  renderResult(level,triggersFired,lastDocs,null,null,severity);
   saveEvaluation();
   // Mostrar panel IA para todos los niveles
   const aiPanel=document.getElementById('ai-panel');
@@ -1444,7 +1461,9 @@ async function generateAIAnalysis(){
     ? `El proyecto NO requiere evaluación formal. Genera un análisis breve confirmando por qué no aplica y qué buenas prácticas de control mínimo se recomiendan de igual forma.`
     : lastLevel==='basic'
     ? `El proyecto requiere REVISIÓN BÁSICA. Genera un análisis que explique qué aspectos revisar, por qué no llegó a evaluación formal y qué validaciones rápidas debe hacer el responsable.`
-    : `El proyecto requiere EVALUACIÓN FORMAL COMPLETA. Genera un análisis ejecutivo detallado con las 4 secciones indicadas.`;
+    : lastSeverity==='express'
+    ? `El proyecto requiere EVALUACIÓN FORMAL VÍA EXPRESS: calificó para formal pero con severidad baja (un solo disparador no crítico). Genera un análisis ágil — recomendaciones concretas y accionables para resolver en una sesión corta con Riesgos, sin la profundidad de una evaluación completa. Sé breve en la sección de recomendaciones (máximo 3).`
+    : `El proyecto requiere EVALUACIÓN FORMAL COMPLETA — severidad alta (datos regulados, combinación continuidad+proveedor externo, o 3+ disparadores). Genera un análisis ejecutivo detallado con las 4 secciones indicadas, con especial énfasis en riesgo y urgencia.`;
 
   const prompt=`Eres un experto en gestión de riesgos corporativos para el CFC, un holding financiero dominicano. Las empresas del grupo son:
 
@@ -1933,7 +1952,9 @@ function buildEmailBody(m,ans,triggers,docs,level){
     ?`DETERMINACION: SU PROYECTO NO REQUIERE EVALUACION FORMAL\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto no requiere una evaluacion formal de riesgos en este momento.\nPuede proceder sin iniciar un proceso formal de RiskCheck CFC.`
     :level==='basic'
     ?`DETERMINACION: SU PROYECTO REQUIERE UNA REVISION BASICA\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto requiere una Revision Basica de Riesgos antes de proceder.\nSe recomienda completar un checklist rapido con el equipo de riesgos.`
-    :`DETERMINACION: SU PROYECTO REQUIERE EVALUACION FORMAL DE RIESGOS\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto REQUIERE una Evaluacion Formal de Riesgos antes de proceder.\nSe identificaron ${triggers.length} factor(es) que activan este nivel de\nrevision. La Direccion de Riesgos debera ser notificada y se debe\niniciar el proceso formal de RiskCheck CFC.`;
+    :(lastSeverity==='express'
+      ?`DETERMINACION: SU PROYECTO REQUIERE EVALUACION FORMAL — VIA EXPRESS\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto requiere una Evaluacion Formal, pero califica para la via\nExpress: puede resolverse en una sesion corta con el equipo de Riesgos,\ncon documentacion reducida.`
+      :`DETERMINACION: SU PROYECTO REQUIERE EVALUACION FORMAL DE RIESGOS\n\nCon base en las respuestas registradas, el sistema ha determinado que\nsu proyecto REQUIERE una Evaluacion Formal de Riesgos antes de proceder.\nSe identificaron ${triggers.length} factor(es) que activan este nivel de\nrevision. La Direccion de Riesgos debera ser notificada y se debe\niniciar el proceso formal de RiskCheck CFC.`);
 
   // Factor dominante
   const fd=getFactorDominante(ans);
