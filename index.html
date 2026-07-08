@@ -1455,6 +1455,7 @@ async function generateAIAnalysis(){
     ?lastTriggers.map(id=>TRIGGER_LABELS[id]).join(', ')
     :'Ninguno';
   const nivelTexto={none:'No aplica evaluación formal',basic:'Revisión básica recomendada',formal:'Evaluación formal de riesgos requerida'}[lastLevel];
+  const fd=getFactorDominante(answers);
 
   // Instruccion de analisis segun nivel
   const instruccionNivel = lastLevel==='none'
@@ -1491,18 +1492,22 @@ ${meta.comentarios?'COMENTARIOS ADICIONALES: '+meta.comentarios:''}
 RESPUESTAS AL CUESTIONARIO:
 ${respuestas}
 
-Genera un análisis ejecutivo completo con exactamente estas 4 secciones en español:
+Genera un análisis ejecutivo completo con exactamente estas 5 secciones en español:
 
 **1. PERFIL DE RIESGO DEL PROYECTO**
 Describe en 2-3 oraciones el perfil de riesgo específico de este proyecto basándote en las respuestas.
 
-**2. ANÁLISIS DE DISPARADORES**
+**2. PERFIL DE RIESGO ESTIMADO**
+Determina un nivel estimado de riesgo INHERENTE (antes de controles) para el proyecto completo: ALTO, MEDIO o BAJO. Sé conservador — usa ALTO si hay datos regulados (P2) combinado con al menos otro disparador, o si hay 3+ disparadores activados. Usa MEDIO si hay 1-2 disparadores sin combinación crítica. Justifica en 1 oración por qué ese nivel y no otro, comparándolo con el criterio de Basilea II (Personas/Procesos/Tecnológico/Externo) ya identificado como factor dominante: ${fd ? fd.label : 'no determinado'}.
+Formato de salida exacto para esta sección: "NIVEL: [ALTO/MEDIO/BAJO] — [justificación en una oración]"
+
+**3. ANÁLISIS DE DISPARADORES**
 Para cada disparador activado, explica por qué es relevante para este proyecto específico y qué riesgo concreto representa para ${meta.empresa}.
 
-**3. RECOMENDACIONES PARA EL ÁREA DE RIESGOS**
+**4. RECOMENDACIONES PARA EL ÁREA DE RIESGOS**
 Lista 3-5 recomendaciones concretas y accionables para el proceso de evaluación formal de RiskCheck CFC.
 
-**4. NIVEL DE URGENCIA**
+**5. NIVEL DE URGENCIA**
 Determina si la urgencia es ALTA, MEDIA o BAJA y justifica en 1-2 oraciones basándote en los disparadores y el tipo de proyecto.
 
 Sé específico, directo y profesional. No uses lenguaje genérico — conecta cada punto con el proyecto "${meta.proyecto}" y la empresa ${meta.empresa}.
